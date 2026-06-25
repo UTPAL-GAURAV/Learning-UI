@@ -7,7 +7,6 @@ A VS Code + Claude learning workflow. Claude teaches, asks scenario questions, a
 ```bash
 git clone https://github.com/utpalgaurav/learning-ui
 cd learning-ui
-cp .env.example .env
 npm install
 ```
 
@@ -43,12 +42,6 @@ Claude reads `CLAUDE.md` at the start of every session. That file tells it:
 
 All data is isolated per Google account and stored in the hosted backend.
 
-## Environment
-
-| Variable | Description |
-|---|---|
-| `VITE_API_URL` | Base URL of the backend, e.g. `https://my-backend.vercel.app` |
-
 ## Stack
 
 - React 19 + TypeScript + Vite
@@ -69,4 +62,4 @@ npm run preview  # Preview production build locally
 
 ## Deploying to Vercel
 
-Vercel auto-detects Vite at the repo root. Add `VITE_API_URL` as an environment variable and deploy.
+Vercel auto-detects Vite at the repo root. The `.env` is committed so no environment variable setup is needed.
