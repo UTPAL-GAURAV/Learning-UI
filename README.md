@@ -5,15 +5,15 @@ A VS Code + Claude learning workflow. Claude teaches, asks scenario questions, a
 ## One-time setup
 
 ```bash
-git clone https://github.com/utpalgaurav/learning-ui
-cd learning-ui
+git clone https://github.com/UTPAL-GAURAV/Learning-UI
+cd Learning-UI
 npm install
 ```
 
 Run the setup script — registers you and configures VS Code:
 
 ```bash
-npx github:utpalgaurav/learning-service
+npx github:UTPAL-GAURAV/Learning-Service
 ```
 
 It opens a Google login, asks your name, role, and learning goal. Done in ~2 minutes.
