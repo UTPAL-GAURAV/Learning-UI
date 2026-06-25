@@ -1,73 +1,63 @@
-# learning-ui
+# Learning UI
 
-Read-only React UI for the VS Code + Claude learning workflow. Claude writes all session data via MCP tools; this app only reads and displays it.
+A VS Code + Claude learning workflow. Claude teaches, asks scenario questions, and tracks progress via MCP tools. This UI displays that data — read-only.
 
-## Stack
-
-- React 19 + TypeScript + Vite
-- Tailwind CSS v4 + `@tailwindcss/typography`
-- Zustand (state)
-- React Router v6
-- `lucide-react`, `marked`
-
-## Setup
+## One-time setup
 
 ```bash
+git clone https://github.com/utpalgaurav/learning-ui
+cd learning-ui
 cp .env.example .env
-# Edit .env and set VITE_API_URL to your backend URL
 npm install
+```
+
+Run the setup script — registers you and configures VS Code:
+
+```bash
+npx github:utpalgaurav/learning-service
+```
+
+It opens a Google login, asks your name, role, and learning goal. Done in ~2 minutes.
+
+Start the dashboard:
+
+```bash
 npm run dev
 ```
+
+## Every session after that
+
+1. Open this folder in VS Code
+2. Open the Claude extension → start a new conversation
+3. Type: `Start a learning session on [topic]`
+4. Claude teaches, asks scenario questions, and tracks your progress automatically
+5. Refresh the browser to see your dashboard update live
+
+## How it works
+
+Claude reads `CLAUDE.md` at the start of every session. That file tells it:
+- Which MCP tools to use for reading/writing session data
+- How to adapt teaching to your role and level
+- How to run test mode (`"test me"` triggers a mock interview)
+- Scoring rules, Q&A card format, notes format
+
+All data is isolated per Google account and stored in the hosted backend.
 
 ## Environment
 
 | Variable | Description |
 |---|---|
-| `VITE_API_URL` | Base URL of the backend API, e.g. `https://my-backend.vercel.app` |
+| `VITE_API_URL` | Base URL of the backend, e.g. `https://my-backend.vercel.app` |
 
-## Auth flow
+## Stack
 
-1. On load, the app checks `localStorage` for `LEARNING_TOKEN`.
-2. If missing, it shows a login screen with a **Login with Google** button that redirects to `GET <API_URL>/auth/google`.
-3. After OAuth completes, the backend redirects back to `/#token=<jwt>`. The app stores the token and reloads.
-4. All API requests include `Authorization: Bearer <token>`. A 401 response clears the token and returns to the login screen.
+- React 19 + TypeScript + Vite
+- Tailwind CSS v4 + `@tailwindcss/typography`
+- Zustand, React Router v6, `lucide-react`, `marked`
 
-## Pages
+## Auth
 
-- `/` — Home: stats, weak areas summary, topic grid
-- `/session/:topicSlug` — Session detail: notes, key concepts, Q&A accordion, readiness panel, score history chart
-
-## Project structure
-
-```
-src/
-├── App.tsx
-├── main.tsx
-├── index.css
-├── store.ts                  # Zustand store
-├── types/index.ts            # All shared types
-├── lib/
-│   ├── api.ts                # Fetch helpers with Bearer token
-│   ├── utils.ts              # Date formatting
-│   ├── scoring.ts            # Score → color/label helpers
-│   └── theme.ts              # Dark mode toggle, persisted to localStorage
-├── pages/
-│   ├── LoginPage.tsx
-│   ├── HomePage.tsx
-│   └── SessionPage.tsx
-└── components/
-    ├── home/
-    │   ├── TopicCard.tsx
-    │   ├── TopicGrid.tsx
-    │   └── WeakAreasSummary.tsx
-    └── session/
-        ├── NotesViewer.tsx
-        ├── KeyConceptsList.tsx
-        ├── QAList.tsx
-        ├── ReadinessPanel.tsx
-        ├── ScoreHistoryChart.tsx
-        └── PendingTopicsPanel.tsx
-```
+On first load the app checks `localStorage` for `LEARNING_TOKEN`. If missing, it shows a Google login that redirects through OAuth. The backend mints a JWT and redirects back to `/#token=<jwt>` — the app stores it and reloads. All API calls include `Authorization: Bearer <token>`. A 401 clears the token and returns to the login screen.
 
 ## Scripts
 
@@ -76,3 +66,7 @@ npm run dev      # Start dev server
 npm run build    # Type-check + production build
 npm run preview  # Preview production build locally
 ```
+
+## Deploying to Vercel
+
+Vercel auto-detects Vite at the repo root. Add `VITE_API_URL` as an environment variable and deploy.
