@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "learning": {
+      "command": "npx",
+      "args": [
+        "github:UTPAL-GAURAV/Learning-Service",
+        "--mcp"
+      ]
+    }
+  }
+}

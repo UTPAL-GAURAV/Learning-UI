@@ -26,8 +26,10 @@ npm run dev
 
 ## Every session after that
 
-1. Open this folder in VS Code
-2. Open the Claude extension → start a new conversation
+Works with **Claude Code CLI**, **Claude Code VS Code extension**, and **Claude Code desktop app** — all read `.claude/settings.json` from the project root automatically.
+
+1. Open this folder in your Claude Code client of choice
+2. Start a new conversation
 3. Type: `Start a learning session on [topic]`
 4. Claude teaches, asks scenario questions, and tracks your progress automatically
 5. Refresh the browser to see your dashboard update live
