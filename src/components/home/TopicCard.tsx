@@ -41,9 +41,10 @@ interface Props {
 }
 
 export default function TopicCard({ session, scores = [] }: Props) {
-  const { label, className: labelClass } = getScoreLabel(session.readinessScore)
-  const scoreColor = getScoreTextColor(session.readinessScore)
-  const barColor = getScoreBarColor(session.readinessScore)
+  const score = session.readinessScore ?? 0
+  const { label, className: labelClass } = getScoreLabel(score)
+  const scoreColor = getScoreTextColor(score)
+  const barColor = getScoreBarColor(score)
   const progress = session.syllabusProgress ?? 0
 
   return (
@@ -57,7 +58,7 @@ export default function TopicCard({ session, scores = [] }: Props) {
       </div>
 
       <div className={`text-3xl font-semibold mb-3 ${scoreColor}`}>
-        {session.readinessScore}%
+        {score}%
       </div>
 
       <div className="space-y-2 mb-3">

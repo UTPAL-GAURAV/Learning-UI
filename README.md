@@ -10,7 +10,7 @@ cd Learning-UI
 npm install
 ```
 
-Run the setup script — registers you and configures VS Code:
+Run the setup script — registers you with the backend (ONE TIME ONLY):
 
 ```bash
 npx github:UTPAL-GAURAV/Learning-Service

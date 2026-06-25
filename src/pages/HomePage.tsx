@@ -16,7 +16,7 @@ export default function HomePage() {
 
   const totalQA = sessions.reduce((acc, s) => acc + (s.sessionCount ?? 0), 0)
   const avgScore = sessions.length
-    ? Math.round(sessions.reduce((a, s) => a + s.readinessScore, 0) / sessions.length)
+    ? Math.round(sessions.reduce((a, s) => a + (s.readinessScore ?? 0), 0) / sessions.length)
     : 0
   const readyCount = sessions.filter(s => s.readinessScore >= 75).length
 

@@ -2,28 +2,84 @@ import type { UserProfile, Session, SessionIndexEntry, WeakArea, ScoreEntry } fr
 
 const API_URL = import.meta.env.VITE_API_URL ?? ''
 
+const RETRY_DELAYS = [3000, 6000, 15000] // Render cold start can take up to ~30s total
+
 function getToken(): string | null {
   return localStorage.getItem('LEARNING_TOKEN')
 }
 
 async function apiFetch<T>(path: string): Promise<T> {
   const token = getToken()
-  const res = await fetch(`${API_URL}${path}`, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  })
-  if (res.status === 401) {
-    localStorage.removeItem('LEARNING_TOKEN')
-    window.location.reload()
-    throw new Error('Unauthorized')
+  const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {}
+
+  for (let attempt = 0; attempt <= RETRY_DELAYS.length; attempt++) {
+    try {
+      const res = await fetch(`${API_URL}${path}`, { headers })
+
+      if (res.status === 401) {
+        localStorage.removeItem('LEARNING_TOKEN')
+        window.location.reload()
+        throw new Error('Unauthorized')
+      }
+
+      // 5xx = server waking up, retry
+      if (res.status >= 500 && attempt < RETRY_DELAYS.length) {
+        await sleep(RETRY_DELAYS[attempt])
+        continue
+      }
+
+      if (!res.ok) throw new Error(`API error ${res.status}: ${path}`)
+      return res.json()
+    } catch (err) {
+      // Network error (fetch threw) = server sleeping, retry
+      if (err instanceof TypeError && attempt < RETRY_DELAYS.length) {
+        await sleep(RETRY_DELAYS[attempt])
+        continue
+      }
+      throw err
+    }
   }
-  if (!res.ok) throw new Error(`API error ${res.status}: ${path}`)
-  return res.json()
+
+  throw new Error(`Backend unavailable after retries: ${path}`)
+}
+
+function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+function mapSessionIndex(s: Record<string, unknown>): SessionIndexEntry {
+  return {
+    topicSlug: s.topic_slug as string,
+    topic: s.topic_name as string,
+    updatedAt: s.updated_at as string,
+    readinessScore: (s.readiness_score as number) ?? 0,
+    sessionCount: (s.session_count as number) ?? 0,
+    syllabusProgress: s.syllabus_progress as number | undefined,
+  }
+}
+
+function mapSession(s: Record<string, unknown>): Session {
+  return {
+    id: s.id as string,
+    topic: s.topic_name as string,
+    topicSlug: s.topic_slug as string,
+    createdAt: s.created_at as string,
+    updatedAt: s.updated_at as string,
+    notes: (s.notes as string) ?? '',
+    keyConcepts: (s.key_concepts as string[]) ?? [],
+    qa: (s.qa as Session['qa']) ?? [],
+    readinessScore: (s.readiness_score as number) ?? 0,
+    sessionCount: (s.session_count as number) ?? 0,
+    syllabusTopics: s.syllabus_topics as string[] | undefined,
+    coveredTopics: s.covered_topics as string[] | undefined,
+    pendingTopics: s.pending_topics as Session['pendingTopics'] | undefined,
+  }
 }
 
 export const api = {
   me: () => apiFetch<UserProfile>('/api/me'),
-  sessions: () => apiFetch<SessionIndexEntry[]>('/api/sessions'),
-  session: (slug: string) => apiFetch<Session>(`/api/sessions/${slug}`),
+  sessions: () => apiFetch<Record<string, unknown>[]>('/api/sessions').then(r => r.map(mapSessionIndex)),
+  session: (slug: string) => apiFetch<Record<string, unknown>>(`/api/sessions/${slug}`).then(mapSession),
   scores: (slug: string) => apiFetch<ScoreEntry[]>(`/api/sessions/${slug}/scores`),
   weakAreas: () => apiFetch<WeakArea[]>('/api/weak-areas'),
   googleAuthUrl: () => `${API_URL}/auth/google`,
