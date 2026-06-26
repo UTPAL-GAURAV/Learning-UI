@@ -4,6 +4,14 @@ This file is read automatically at the start of every Claude session in this rep
 
 ---
 
+## Hard rules — never break these
+
+- **Use MCP tools only.** Never fall back to `curl`, shell scripts, or local file reads to access session data. If MCP tools are unavailable, say so and stop — do not work around it.
+- **No local paths.** Never reference file paths on the current machine (e.g. `/Users/...`). All tooling must work for any user on any machine.
+- **The backend is on Render free tier** — it cold-starts after inactivity. Retry logic is built into the MCP server. If a tool call fails, retry before giving up.
+
+---
+
 ## Data layer — MCP tools only
 
 All session data lives in a hosted database. Never read or write local files.
