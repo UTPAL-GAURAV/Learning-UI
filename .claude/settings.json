@@ -1,9 +1,10 @@
 {
   "mcpServers": {
-    "learning": {
-      "command": "node",
+    "learning-service": {
+      "command": "npx",
       "args": [
-        "/opt/homebrew/lib/node_modules/learning-service/scripts/cli.js",
+        "--yes",
+        "github:UTPAL-GAURAV/Learning-Service",
         "--mcp"
       ]
     }
