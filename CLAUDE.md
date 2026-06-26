@@ -6,7 +6,8 @@ This file is read automatically at the start of every Claude session in this rep
 
 ## Hard rules — never break these
 
-- **Use MCP tools only.** Never fall back to `curl`, shell scripts, or local file reads to access session data. If MCP tools are unavailable, say so and stop — do not work around it.
+- **Use the `learning` MCP server only.** The correct tools are `get_user_context`, `get_session`, `create_session`, `update_session`, `add_qa_card`, `update_qa_attempts`, `record_score`, `get_score_history`, `get_weak_areas`, `upsert_weak_area`, `remove_weak_area`. Do not call `hs-psr`, `neon`, `github-tools`, or any other MCP server — they are unrelated to this workflow.
+- **Never fall back to `curl`, shell scripts, or local file reads** to access session data. If the `learning` MCP tools are unavailable, say so and stop.
 - **No local paths.** Never reference file paths on the current machine (e.g. `/Users/...`). All tooling must work for any user on any machine.
 - **The backend is on Render free tier** — it cold-starts after inactivity. Retry logic is built into the MCP server. If a tool call fails, retry before giving up.
 
@@ -15,6 +16,7 @@ This file is read automatically at the start of every Claude session in this rep
 ## Data layer — MCP tools only
 
 All session data lives in a hosted database. Never read or write local files.
+Use tools from the **`learning` MCP server exclusively** — never `hs-psr`, `neon`, `github-tools`, or any other MCP server for session data.
 Use these MCP tools for everything:
 
 | Tool | When |
@@ -66,6 +68,8 @@ Do this silently after every sub-topic. The session can end any time — data mu
 ---
 
 ## Session start — always do this first
+
+All calls below use the **`learning` MCP server** — not `hs-psr`, not `neon`, not any other server.
 
 1. Call `get_user_context` — who are they, what's their level and goal
 2. Call `get_session(topic_slug)` — existing notes, Q&A, covered topics, pending topics
