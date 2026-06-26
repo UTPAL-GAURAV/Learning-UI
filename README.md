@@ -16,13 +16,15 @@ Open the dashboard: https://learning-ui-indol.vercel.app
 
 ## Every session after that
 
-Works with **Claude Code CLI**, **Claude Code VS Code extension**, and **Claude Code desktop app** — all read `.claude/settings.json` from the project root automatically.
+No commands to run. The MCP server starts automatically when Claude Code starts.
 
-1. Open this folder in your Claude Code client of choice
+1. Open this folder in your Claude Code client of choice (CLI, VS Code extension, or desktop app)
 2. Start a new conversation
 3. Type: `Start a learning session on [topic]`
 4. Claude teaches, asks scenario questions, and tracks your progress automatically
 5. Refresh the browser to see your dashboard update live
+
+> **You must open this folder** — Claude Code reads `.claude/settings.json` from the project root to connect the MCP server. Running `claude` from a different directory won't have the learning tools available.
 
 ## How it works
 
