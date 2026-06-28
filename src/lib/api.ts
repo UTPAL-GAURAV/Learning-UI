@@ -163,6 +163,13 @@ export const api = {
     Promise.reject(new Error('Edit cards not yet supported by the backend.')),
   deleteCard: (_id: string): Promise<void> =>
     Promise.reject(new Error('Delete cards not yet supported by the backend.')),
+  deleteSession: async (slug: string): Promise<void> => {
+    const token = getToken()
+    const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {}
+    const res = await fetch(`${API_URL}/api/sessions/${slug}`, { method: 'DELETE', headers })
+    if (res.status === 401) { localStorage.removeItem('LEARNING_TOKEN'); window.location.reload(); throw new Error('Unauthorized') }
+    if (!res.ok && res.status !== 204) throw new Error(`Failed to delete session: ${res.status}`)
+  },
   scores: (slug: string) => apiFetch<import('../types').ScoreEntry[]>(`/api/sessions/${slug}/scores`),
   weakAreas: (topic?: string) => apiFetch<Record<string, unknown>[]>(`/api/weak-areas${topic ? `?topic=${topic}` : ''}`).then(r => Array.from(r).map(mapWeakArea)),
   googleAuthUrl: () => `${API_URL}/auth/google`,

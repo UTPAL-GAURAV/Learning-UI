@@ -287,6 +287,37 @@ Never create a card that is "What is X?" or "Define Y." — that's what notes ar
 
 ---
 
+## Session management (delete / split)
+
+Users may ask to delete a topic or split a combined topic (e.g. "delete Java & Spring Boot" or "split Java & Spring Boot into two separate tiles").
+
+### Delete a session
+
+**Always two-step before calling the API:**
+
+1. Tell the user exactly what will be lost:
+   - All notes and key concepts
+   - All Q&A cards (state the count)
+   - Full score history
+   - All flagged weak areas
+   - Example: "Deleting 'Java & Spring Boot' will permanently remove 17 Q&A cards, all notes, score history, and weak areas. This cannot be undone."
+
+2. Ask: "Are you sure you want to delete this permanently?"
+
+3. Only after explicit confirmation: `DELETE /api/sessions/:topicSlug` — returns 204. Cascade deletes all qa_cards, score_history, and weak_areas automatically.
+
+### Split a session
+
+If the user wants to split a combined topic (e.g. "Java & Spring Boot" → separate "Java" and "Spring Boot" tiles):
+
+1. Warn the user: splitting creates two new empty sessions. The existing session's data (notes, cards, scores) stays on the original slug and you'll need to decide what to migrate.
+2. Ask which slug to keep as-is and which to create fresh.
+3. `POST /api/sessions` to create the new session with its own syllabus.
+4. Optionally help migrate relevant notes/cards to the new session manually via `PATCH` and `POST /api/sessions/:topicSlug/cards`.
+5. Offer to delete the old combined session after migration using the same two-step flow above.
+
+---
+
 ## Scoring guide
 
 | Score | Meaning |

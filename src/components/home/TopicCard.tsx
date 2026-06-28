@@ -4,26 +4,16 @@ import type { SessionIndexEntry, ScoreEntry } from '../../types'
 import { formatRelative } from '../../lib/utils'
 import { getScoreLabel, getScoreTextColor, getScoreBarColor } from '../../lib/scoring'
 
-interface SparklineProps {
-  entries: ScoreEntry[]
-}
-
-function Sparkline({ entries }: SparklineProps) {
+function Sparkline({ entries }: { entries: ScoreEntry[] }) {
   if (entries.length < 2) return null
   const last6 = entries.slice(-6)
-  const W = 120
-  const H = 28
-  const PAD = 3
+  const W = 120, H = 28, PAD = 3
   const xs = last6.map((_, i) => PAD + (i / (last6.length - 1)) * (W - PAD * 2))
   const ys = last6.map(e => H - PAD - ((e.score / 100) * (H - PAD * 2)))
-  const points = xs.map((x, i) => `${x},${ys[i]}`).join(' ')
-
   return (
     <svg width={W} height={H} className="overflow-visible">
-      <polyline points={points} fill="none" stroke="#7c3aed" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
-      {xs.map((x, i) => (
-        <circle key={i} cx={x} cy={ys[i]} r={2.5} fill="#7c3aed" />
-      ))}
+      <polyline points={xs.map((x, i) => `${x},${ys[i]}`).join(' ')} fill="none" stroke="#7c3aed" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+      {xs.map((x, i) => <circle key={i} cx={x} cy={ys[i]} r={2.5} fill="#7c3aed" />)}
     </svg>
   )
 }
@@ -60,8 +50,7 @@ export default function TopicCard({ session, scores = [] }: Props) {
       <div className="space-y-2 mb-4">
         <div>
           <div className="flex justify-between text-xs text-slate-400 mb-1">
-            <span>Readiness</span>
-            <span>{score}%</span>
+            <span>Readiness</span><span>{score}%</span>
           </div>
           <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
             <div className={`h-full rounded-full transition-all ${barColor}`} style={{ width: `${Math.min(score, 100)}%` }} />
@@ -69,8 +58,7 @@ export default function TopicCard({ session, scores = [] }: Props) {
         </div>
         <div>
           <div className="flex justify-between text-xs text-slate-400 mb-1">
-            <span>Coverage</span>
-            <span>{total > 0 ? `${covered}/${total}` : '—'}</span>
+            <span>Coverage</span><span>{total > 0 ? `${covered}/${total}` : '—'}</span>
           </div>
           <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
             <div className="h-full rounded-full bg-violet-500 transition-all" style={{ width: `${Math.min(progress * 100, 100)}%` }} />
@@ -78,11 +66,7 @@ export default function TopicCard({ session, scores = [] }: Props) {
         </div>
       </div>
 
-      {scores.length >= 2 && (
-        <div className="mb-3">
-          <Sparkline entries={scores} />
-        </div>
-      )}
+      {scores.length >= 2 && <div className="mb-3"><Sparkline entries={scores} /></div>}
 
       <div className="flex gap-4 text-xs text-slate-400">
         <span className="flex items-center gap-1"><MessageSquare size={11} />{session.sessionCount} Q&amp;A</span>
