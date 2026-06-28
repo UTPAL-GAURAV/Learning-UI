@@ -105,7 +105,7 @@ function SetupModal({ onClose }: { onClose: () => void }) {
           <div>
             <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-2">1. Clone the repo</p>
             <code className="block bg-slate-800 text-sky-400 px-3 py-2 rounded-lg text-xs font-mono">
-              git clone https://github.com/UTPAL-GAURAV/Learning-UI.git
+              git clone https://github.com/UTPAL-GAURAV/lumen.git
             </code>
           </div>
           <div>
