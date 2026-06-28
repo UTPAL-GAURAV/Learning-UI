@@ -84,7 +84,7 @@ export default function NotesViewer({ notes, onSave }: Props) {
         <textarea
           value={draft}
           onChange={e => setDraft(e.target.value)}
-          className="w-full bg-slate-900 text-slate-200 text-sm font-mono p-5 resize-none outline-none min-h-[400px] leading-relaxed"
+          className="w-full bg-slate-900 text-slate-200 text-sm font-mono p-5 resize-none outline-none min-h-[300px] sm:min-h-[400px] leading-relaxed"
           placeholder="Write notes in Markdown…"
           spellCheck={false}
         />

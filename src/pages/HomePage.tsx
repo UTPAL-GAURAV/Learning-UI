@@ -25,7 +25,7 @@ function AboutModal({ onClose }: { onClose: () => void }) {
           <span className="text-white font-medium"> This app is the single place where everything lives:</span> your notes, your Q&amp;A cards, your weak spots, your progress — all tied to <em>you</em> and <em>your</em> goal.
         </p>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4">
             <div className="flex items-center gap-2 mb-2">
               <Brain size={14} className="text-violet-400" />
@@ -110,18 +110,18 @@ function SetupModal({ onClose }: { onClose: () => void }) {
           </div>
           <div>
             <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-2">2. Get your token</p>
-            <p>Log in with Google above, then click <span className="text-white font-medium">Copy token</span> in the header.</p>
+            <p>Copy token from the header button present in this UI.</p>
           </div>
           <div>
             <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-2">3. Add token to .env</p>
-            <p>Open the cloned repo in your local machine and paste the token.</p>
+            <p>Open the cloned repo (Lumen) in your VS Code and paste the token in .env file.</p>
             <code className="block bg-slate-800 text-sky-400 px-3 py-2 rounded-lg text-xs font-mono">
               LEARNING_TOKEN=&lt;paste token here&gt;
             </code>
           </div>
           <div>
             <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-2">4. Start a session</p>
-            <p>Open the cloned folder in Claude Code (CLI, VS Code extension, or desktop app) and say:</p>
+            <p>Open Claude Code CLI or VS Code extension or or desktop app and say (cli path must be Lumen):</p>
             <code className="block bg-slate-800 text-emerald-400 px-3 py-2 rounded-lg text-xs font-mono mt-1">
               Start a learning session on [topic]
             </code>
@@ -161,35 +161,35 @@ export default function HomePage() {
       {showSetup && <SetupModal onClose={() => setShowSetup(false)} />}
       {showAbout && <AboutModal onClose={() => setShowAbout(false)} />}
 
-      <header className="sticky top-0 z-10 h-14 bg-slate-900 border-b border-slate-800 flex items-center px-4 gap-3">
-        <div className="flex items-center gap-2 text-violet-500 flex-1">
-          <BookOpen size={20} />
-          <span className="font-semibold text-white">Learning</span>
+      <header className="sticky top-0 z-10 h-14 bg-slate-900 border-b border-slate-800 flex items-center px-4 gap-2">
+        <div className="flex items-center gap-2 text-violet-500 flex-1 min-w-0">
+          <BookOpen size={20} className="shrink-0" />
+          <span className="font-semibold text-white truncate">Learning</span>
         </div>
         <button
           onClick={() => setShowAbout(true)}
-          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+          className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors shrink-0"
         >
           <Sparkles size={14} />
-          About
+          <span className="hidden sm:inline">About</span>
         </button>
         <button
           onClick={() => setShowSetup(true)}
-          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+          className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors shrink-0"
         >
           <HelpCircle size={14} />
-          How to use
+          <span className="hidden sm:inline">How to use</span>
         </button>
         <button
           onClick={handleCopyToken}
-          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+          className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors shrink-0"
           title="Copy auth token for Claude"
         >
           {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
-          {copied ? 'Copied!' : 'Copy token'}
+          <span className="hidden sm:inline">{copied ? 'Copied!' : 'Copy token'}</span>
         </button>
         {me && (
-          <span className="text-xs text-slate-400 bg-slate-800 px-3 py-1 rounded-full font-medium">
+          <span className="hidden sm:inline text-xs text-slate-400 bg-slate-800 px-2.5 py-1 rounded-full font-medium truncate max-w-[100px]">
             {me.name}
           </span>
         )}
@@ -197,28 +197,33 @@ export default function HomePage() {
 
       <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
         {sessions.length > 0 && (
-          <div className="grid grid-cols-3 gap-4">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+          <div className="grid grid-cols-3 gap-3 sm:gap-4">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3 sm:p-5">
               <div className="flex items-center gap-1.5 mb-2">
                 <BookOpen size={14} className="text-violet-500" />
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Topics</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 hidden sm:inline">Topics</span>
               </div>
-              <div className="text-4xl font-bold text-white">{sessions.length}</div>
+              <div className="text-3xl sm:text-4xl font-bold text-white">{sessions.length}</div>
+              <div className="text-xs text-slate-500 sm:hidden mt-0.5">Topics</div>
             </div>
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3 sm:p-5">
               <div className="flex items-center gap-1.5 mb-2">
                 <TrendingUp size={14} className="text-violet-500" />
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Q&amp;A Cards</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 hidden sm:inline">Q&amp;A Cards</span>
               </div>
-              <div className="text-4xl font-bold text-white">{totalQA}</div>
+              <div className="text-3xl sm:text-4xl font-bold text-white">{totalQA}</div>
+              <div className="text-xs text-slate-500 sm:hidden mt-0.5">Q&amp;A</div>
             </div>
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3 sm:p-5">
               <div className="flex items-center gap-1.5 mb-2">
                 <Target size={14} className="text-emerald-500" />
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Avg Readiness</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 hidden sm:inline">Avg Readiness</span>
               </div>
-              <div className={`text-4xl font-bold ${getScoreTextColor(avgScore)}`}>{avgScore}</div>
-              <div className="text-xs text-slate-500 mt-1">{readyCount} topic{readyCount !== 1 ? 's' : ''} ≥ 75</div>
+              <div className={`text-3xl sm:text-4xl font-bold ${getScoreTextColor(avgScore)}`}>{avgScore}</div>
+              <div className="text-xs text-slate-500 mt-0.5 sm:mt-1">
+                <span className="sm:hidden">Avg </span>
+                {readyCount} topic{readyCount !== 1 ? 's' : ''} ≥ 75
+              </div>
             </div>
           </div>
         )}

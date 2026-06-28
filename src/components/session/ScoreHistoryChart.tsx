@@ -29,7 +29,7 @@ export default function ScoreHistoryChart({ scores }: Props) {
 }
 
 function ScoreChart({ entries }: { entries: ScoreEntry[] }) {
-  const W = 220
+  const W = 260
   const H = 90
   const PAD_L = 4
   const PAD_R = 4

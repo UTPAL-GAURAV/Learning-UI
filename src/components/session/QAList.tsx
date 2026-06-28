@@ -97,7 +97,7 @@ function CardForm({ initial, onSave, onClose, title }: CardFormProps) {
               placeholder="Model answer…"
             />
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex-1">
               <label className="text-xs text-slate-400 mb-1 block">Difficulty</label>
               <select
@@ -264,11 +264,11 @@ export default function QAList({ items: initialItems, topicSlug }: Props) {
         />
       )}
 
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-3">
+        <div className="flex items-center gap-2 flex-1 min-w-0 flex-wrap">
           <span className="font-semibold text-white text-sm">Q&amp;A</span>
           <Filter size={14} className="text-slate-500" />
-          <div className="flex gap-1">
+          <div className="flex gap-1 flex-wrap">
             {tabs.map(tab => (
               <button
                 key={tab.key}
@@ -286,7 +286,7 @@ export default function QAList({ items: initialItems, topicSlug }: Props) {
         </div>
         <button
           onClick={() => setAdding(true)}
-          className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white rounded-full font-medium transition-colors"
+          className="flex items-center gap-1.5 text-xs px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white rounded-full font-medium transition-colors self-start sm:self-auto"
         >
           <Plus size={13} />
           Add Q&amp;A

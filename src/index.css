@@ -5,6 +5,10 @@
   --font-sans: ui-sans-serif, system-ui, sans-serif;
 }
 
+html, body {
+  overflow-x: hidden;
+}
+
 /* Notes markdown rendering */
 .notes-content { color: #cbd5e1; font-size: 0.875rem; line-height: 1.7; }
 .notes-content h1, .notes-content h2, .notes-content h3 {
@@ -36,7 +40,7 @@
   border-radius: 8px; overflow-x: auto; margin: 0.75rem 0;
 }
 .notes-content pre code { background: none; padding: 0; color: #e2e8f0; }
-.notes-content table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.82rem; }
+.notes-content table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.82rem; display: block; overflow-x: auto; }
 .notes-content th { text-align: left; color: #94a3b8; font-weight: 600; padding: 0.4rem 0.75rem; border-bottom: 1px solid #334155; }
 .notes-content td { padding: 0.4rem 0.75rem; border-bottom: 1px solid #1e293b; color: #cbd5e1; }
 .notes-content tr:last-child td { border-bottom: none; }
