@@ -156,6 +156,8 @@ export default function HomePage() {
     : 0
   const readyCount = sessions.filter(s => s.readinessScore >= 75).length
 
+  const isEmpty = sessions.length === 0
+
   return (
     <div className="min-h-screen bg-slate-950">
       {showSetup && <SetupModal onClose={() => setShowSetup(false)} />}
@@ -166,20 +168,24 @@ export default function HomePage() {
           <BookOpen size={20} className="shrink-0" />
           <span className="font-semibold text-white truncate">Learning</span>
         </div>
-        <button
-          onClick={() => setShowAbout(true)}
-          className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors shrink-0"
-        >
-          <Sparkles size={14} />
-          <span className="hidden sm:inline">About</span>
-        </button>
-        <button
-          onClick={() => setShowSetup(true)}
-          className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors shrink-0"
-        >
-          <HelpCircle size={14} />
-          <span className="hidden sm:inline">How to use</span>
-        </button>
+        {!isEmpty && (
+          <>
+            <button
+              onClick={() => setShowAbout(true)}
+              className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors shrink-0"
+            >
+              <Sparkles size={14} />
+              <span className="hidden sm:inline">About</span>
+            </button>
+            <button
+              onClick={() => setShowSetup(true)}
+              className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors shrink-0"
+            >
+              <HelpCircle size={14} />
+              <span className="hidden sm:inline">How to use</span>
+            </button>
+          </>
+        )}
         <button
           onClick={handleCopyToken}
           className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors shrink-0"
@@ -196,39 +202,148 @@ export default function HomePage() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
-        {sessions.length > 0 && (
-          <div className="grid grid-cols-3 gap-3 sm:gap-4">
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3 sm:p-5">
-              <div className="flex items-center gap-1.5 mb-2">
-                <BookOpen size={14} className="text-violet-500" />
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 hidden sm:inline">Topics</span>
+        {isEmpty ? (
+          <div className="space-y-8">
+            {/* What is this app */}
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <Sparkles size={15} className="text-violet-400" />
+                <h2 className="font-bold text-white text-base">What is this app?</h2>
               </div>
-              <div className="text-3xl sm:text-4xl font-bold text-white">{sessions.length}</div>
-              <div className="text-xs text-slate-500 sm:hidden mt-0.5">Topics</div>
+              <p className="text-xs text-slate-500 mb-4">Your one-stop personalised learning companion</p>
+              <p className="text-sm text-slate-300 leading-relaxed mb-5">
+                Most learners bounce between YouTube videos, blog posts, flashcard apps, and random mock tests — spending more time managing their prep than actually learning.
+                <span className="text-white font-medium"> This app is the single place where everything lives:</span> your notes, your Q&amp;A cards, your weak spots, your progress — all tied to <em>you</em> and <em>your</em> goal.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Brain size={14} className="text-violet-400" />
+                    <span className="text-xs font-semibold text-white uppercase tracking-wide">Personalised teaching</span>
+                  </div>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Claude knows your role, level, and goal. Every explanation, analogy, and example is tailored to you — an SDE-2 candidate gets system-design depth; a QA engineer gets test-design scenarios.
+                  </p>
+                </div>
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Layers size={14} className="text-emerald-400" />
+                    <span className="text-xs font-semibold text-white uppercase tracking-wide">Structured syllabus</span>
+                  </div>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Just say "I want to learn Redis" — Claude designs the full syllabus for your level, walks you through each sub-topic in order, and keeps track of where you are. No more random rabbit holes.
+                  </p>
+                </div>
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <FileQuestion size={14} className="text-sky-400" />
+                    <span className="text-xs font-semibold text-white uppercase tracking-wide">Application-first Q&amp;A</span>
+                  </div>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Every question is scenario-based or a trade-off — the kind that actually comes up in interviews. No "define X" cards. Each card is auto-generated per your topic and difficulty level.
+                  </p>
+                </div>
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <RotateCcw size={14} className="text-amber-400" />
+                    <span className="text-xs font-semibold text-white uppercase tracking-wide">Memory across sessions</span>
+                  </div>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Pick up exactly where you left off — last score, deferred topics, flagged weak areas. No need to maintain notes manually. The app remembers everything between sessions.
+                  </p>
+                </div>
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Target size={14} className="text-rose-400" />
+                    <span className="text-xs font-semibold text-white uppercase tracking-wide">Weak area tracking</span>
+                  </div>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    Wrong answers are automatically flagged as weak areas. You can drill them any time, and the test mode biases toward gaps — so you're always working on what matters most.
+                  </p>
+                </div>
+                <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp size={14} className="text-violet-400" />
+                    <span className="text-xs font-semibold text-white uppercase tracking-wide">One-stop dashboard</span>
+                  </div>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    No YouTube, no Notion, no random mock sites. Every topic you're learning lives here — with readiness scores, score history, notes, and Q&amp;A cards all in one place.
+                  </p>
+                </div>
+              </div>
             </div>
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3 sm:p-5">
-              <div className="flex items-center gap-1.5 mb-2">
-                <TrendingUp size={14} className="text-violet-500" />
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 hidden sm:inline">Q&amp;A Cards</span>
+
+            {/* How to use */}
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
+              <div className="flex items-center gap-2 mb-4">
+                <HelpCircle size={15} className="text-violet-400" />
+                <h2 className="font-bold text-white text-base">How to get started</h2>
               </div>
-              <div className="text-3xl sm:text-4xl font-bold text-white">{totalQA}</div>
-              <div className="text-xs text-slate-500 sm:hidden mt-0.5">Q&amp;A</div>
-            </div>
-            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3 sm:p-5">
-              <div className="flex items-center gap-1.5 mb-2">
-                <Target size={14} className="text-emerald-500" />
-                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 hidden sm:inline">Avg Readiness</span>
-              </div>
-              <div className={`text-3xl sm:text-4xl font-bold ${getScoreTextColor(avgScore)}`}>{avgScore}</div>
-              <div className="text-xs text-slate-500 mt-0.5 sm:mt-1">
-                <span className="sm:hidden">Avg </span>
-                {readyCount} topic{readyCount !== 1 ? 's' : ''} ≥ 75
+              <div className="space-y-4 text-sm text-slate-300 leading-relaxed">
+                <div>
+                  <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-2">1. Clone the repo</p>
+                  <code className="block bg-slate-800 text-sky-400 px-3 py-2 rounded-lg text-xs font-mono break-all">
+                    git clone https://github.com/UTPAL-GAURAV/lumen.git
+                  </code>
+                </div>
+                <div>
+                  <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-2">2. Get your token</p>
+                  <p className="text-slate-400 text-sm">Click <span className="text-white font-medium">Copy token</span> in the header above.</p>
+                </div>
+                <div>
+                  <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-2">3. Add token to .env</p>
+                  <p className="text-slate-400 text-sm mb-2">Open the cloned repo in VS Code and paste the token in <code className="text-sky-400 bg-slate-800 px-1 rounded">.env</code>:</p>
+                  <code className="block bg-slate-800 text-sky-400 px-3 py-2 rounded-lg text-xs font-mono">
+                    LEARNING_TOKEN=&lt;paste token here&gt;
+                  </code>
+                </div>
+                <div>
+                  <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-2">4. Start a session</p>
+                  <p className="text-slate-400 text-sm mb-2">Open Claude Code (CLI, VS Code extension, or desktop app) with the Lumen repo and say:</p>
+                  <code className="block bg-slate-800 text-emerald-400 px-3 py-2 rounded-lg text-xs font-mono">
+                    Start a learning session on [topic]
+                  </code>
+                </div>
+                <p className="text-slate-500 text-xs pt-1">
+                  Claude reads CLAUDE.md automatically — no extra setup needed. Refresh this page to see your topics appear.
+                </p>
               </div>
             </div>
           </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-3 gap-3 sm:gap-4">
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3 sm:p-5">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <BookOpen size={14} className="text-violet-500" />
+                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 hidden sm:inline">Topics</span>
+                </div>
+                <div className="text-3xl sm:text-4xl font-bold text-white">{sessions.length}</div>
+                <div className="text-xs text-slate-500 sm:hidden mt-0.5">Topics</div>
+              </div>
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3 sm:p-5">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <TrendingUp size={14} className="text-violet-500" />
+                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 hidden sm:inline">Q&amp;A Cards</span>
+                </div>
+                <div className="text-3xl sm:text-4xl font-bold text-white">{totalQA}</div>
+                <div className="text-xs text-slate-500 sm:hidden mt-0.5">Q&amp;A</div>
+              </div>
+              <div className="bg-slate-900 border border-slate-800 rounded-2xl p-3 sm:p-5">
+                <div className="flex items-center gap-1.5 mb-2">
+                  <Target size={14} className="text-emerald-500" />
+                  <span className="text-xs font-semibold uppercase tracking-wider text-slate-400 hidden sm:inline">Avg Readiness</span>
+                </div>
+                <div className={`text-3xl sm:text-4xl font-bold ${getScoreTextColor(avgScore)}`}>{avgScore}</div>
+                <div className="text-xs text-slate-500 mt-0.5 sm:mt-1">
+                  <span className="sm:hidden">Avg </span>
+                  {readyCount} topic{readyCount !== 1 ? 's' : ''} ≥ 75
+                </div>
+              </div>
+            </div>
+            <TopicGrid sessions={sessions} />
+          </>
         )}
-
-        <TopicGrid sessions={sessions} />
       </main>
     </div>
   )
