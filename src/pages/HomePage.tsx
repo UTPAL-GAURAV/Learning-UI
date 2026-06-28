@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BookOpen, Sun, Moon } from 'lucide-react'
+import { BookOpen, Sun, Moon, Copy, Check } from 'lucide-react'
 import { useStore } from '../store'
 import { toggleTheme, getTheme } from '../lib/theme'
 import { getScoreTextColor } from '../lib/scoring'
@@ -9,6 +9,16 @@ import WeakAreasSummary from '../components/home/WeakAreasSummary'
 export default function HomePage() {
   const { me, sessions, weakAreas } = useStore()
   const [theme, setTheme] = useState(getTheme())
+  const [copied, setCopied] = useState(false)
+
+  function handleCopyToken() {
+    const token = localStorage.getItem('LEARNING_TOKEN')
+    if (!token) return
+    navigator.clipboard.writeText(token).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
 
   function handleToggleTheme() {
     setTheme(toggleTheme())
@@ -28,7 +38,14 @@ export default function HomePage() {
           <span className="font-semibold text-slate-800 dark:text-slate-100">Learning</span>
         </div>
         <button
-          onClick={handleToggleTheme}
+          onClick={handleCopyToken}
+          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          title="Copy auth token for Claude"
+        >
+          {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
+          {copied ? 'Copied!' : 'Copy token'}
+        </button>
+        <button
           className="p-2 rounded-lg text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           aria-label="Toggle dark mode"
         >

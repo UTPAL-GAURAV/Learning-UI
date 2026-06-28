@@ -6,44 +6,83 @@ This file is read automatically at the start of every Claude session in this rep
 
 ## Hard rules — never break these
 
-- **Use the `learning` MCP server only.** The correct tools are `get_user_context`, `get_session`, `create_session`, `update_session`, `add_qa_card`, `update_qa_attempts`, `record_score`, `get_score_history`, `get_weak_areas`, `upsert_weak_area`, `remove_weak_area`. Do not call `hs-psr`, `neon`, `github-tools`, or any other MCP server — they are unrelated to this workflow.
-- **Never fall back to `curl`, shell scripts, or local file reads** to access session data. If the `learning` MCP tools are unavailable, say so and stop.
+- **Use the REST API only.** All session data is accessed via HTTP calls to the backend. Do not call `hs-psr`, `neon`, `github-tools`, `learning`, or any other MCP server — they are unrelated to this workflow.
+- **Never fall back to local file reads** to access session data. All reads and writes go through the API.
 - **No local paths.** Never reference file paths on the current machine (e.g. `/Users/...`). All tooling must work for any user on any machine.
-- **The backend is on Render free tier** — it cold-starts after inactivity. Retry logic is built into the MCP server. If a tool call fails, retry before giving up.
+- **The backend is on Render free tier** — it cold-starts after inactivity. If a request fails with a timeout or 503, retry once before giving up.
+- **Every request requires `Authorization: Bearer <jwt>`** (except `/auth/google` and `/auth/callback`). Read the token from the `LEARNING_TOKEN` variable in `.env` at the project root. If it's missing, tell the user to copy their token from the dashboard and add it to `.env` as `LEARNING_TOKEN=<token>`.
+- **Backend base URL:** `https://learning-service-y9e3.onrender.com`. All API paths are relative to this.
 
 ---
 
-## Data layer — MCP tools only
+## Data layer — REST API
 
-All session data lives in a hosted database. Never read or write local files.
-Use tools from the **`learning` MCP server exclusively** — never `hs-psr`, `neon`, `github-tools`, or any other MCP server for session data.
-Use these MCP tools for everything:
+All session data lives in a hosted database accessed via HTTP. Never read or write local files.
+All routes below require `Authorization: Bearer <jwt>` unless noted otherwise.
+Make all API calls silently. Don't announce them. Don't ask permission.
 
-| Tool | When |
-|------|------|
-| `get_user_context` | Session start — who is this person, their level, goal, last score |
-| `get_session(topic_slug)` | Load existing session data, notes, Q&A, covered topics |
-| `create_session(topic_slug, topic_name, syllabus_topics[])` | First time a topic is started |
-| `update_session(topic_slug, patch)` | Update notes, readiness_score, covered_topics, pending_topics, key_concepts |
-| `add_qa_card(topic_slug, card)` | Add a new Q&A card after sub-topic is cleared |
-| `update_qa_attempts(card_id, attempt)` | Record correct/incorrect attempt on a card |
-| `record_score(topic_slug, score, note)` | Append score entry after each sub-topic |
-| `get_score_history(topic_slug)` | Load past scores for a topic |
-| `get_weak_areas(topic_slug)` | Load flagged weak areas |
-| `upsert_weak_area(topic_slug, sub_topic, description)` | Flag a gap |
-| `remove_weak_area(topic_slug, sub_topic)` | Clear a resolved weak area |
+### Auth
 
-Do all MCP calls silently. Don't announce them. Don't ask permission.
+| Method | Endpoint | When to call |
+|--------|----------|-------------|
+| GET | `/auth/google` | Redirect user here to start Google login. Pass `?state=<port>` for CLI flow. |
+| GET | `/auth/callback` | Google redirects here automatically. On success, redirects to `<FRONTEND_URL>/#token=<jwt>`. |
+
+### User Profile
+
+| Method | Endpoint | When to call |
+|--------|----------|-------------|
+| GET | `/api/me` | Session start — get logged-in user's profile (name, email, role, level, learningGoal). |
+| PUT | `/api/me` | When user updates their profile. Body: `{ role?, level?, learningGoal? }` — all optional. |
+
+### Sessions
+
+| Method | Endpoint | When to call |
+|--------|----------|-------------|
+| GET | `/api/sessions` | Dashboard — lists all sessions with `last_score` and `weak_area_count`. |
+| POST | `/api/sessions` | Starting a new topic. Body: `{ topicSlug, topicName, syllabusTopics[] }`. Upserts on conflict. |
+| GET | `/api/sessions/:topicSlug` | Opening a specific session. Returns full session data. |
+| PATCH | `/api/sessions/:topicSlug` | Saving progress. Body (all optional): `{ notes?, readinessScore?, coveredTopics?, pendingTopics?, keyConcepts? }`. |
+
+### Q&A Cards
+
+| Method | Endpoint | When to call |
+|--------|----------|-------------|
+| POST | `/api/sessions/:topicSlug/cards` | Adding a new Q&A card. Body: `{ id, question, answer, difficulty, tags? }`. |
+| PATCH | `/api/cards/:cardId/attempts` | After each practice attempt. Body: `{ timestamp, correct }`. |
+
+### Scores
+
+| Method | Endpoint | When to call |
+|--------|----------|-------------|
+| POST | `/api/sessions/:topicSlug/scores` | Logging a readiness score. Body: `{ score, note? }`. |
+| GET | `/api/sessions/:topicSlug/scores` | Loading score history for a topic. |
+
+### Weak Areas
+
+| Method | Endpoint | When to call |
+|--------|----------|-------------|
+| GET | `/api/weak-areas` | Show all weak areas. Add `?topic=<slug>` to filter by topic. |
+| PUT | `/api/weak-areas/:topicSlug/:subTopic` | Add or update a weak area. Body: `{ description }`. Upserts. |
+| DELETE | `/api/weak-areas/:topicSlug/:subTopic` | Mark a weak area as resolved. Returns 204. |
 
 ---
 
 ## Who you're teaching
 
-Call `get_user_context` at the start of every session. It returns:
+Call `GET /api/me` at the start of every session. It returns:
 - Name, role (e.g. "SDE-2 candidate", "UX Designer", "QA Engineer")
 - Level (beginner / intermediate / senior)
 - Learning goal
-- Active topics with last score and weak area count
+
+Then call `GET /api/sessions` to see active topics with last score and weak area count.
+
+**If `role`, `level`, or `learningGoal` are missing or empty**, ask the user directly before starting:
+- "What role are you preparing for? (e.g. SDE-1, SDE-2, PM, UX Designer)"
+- "What's your target level? (beginner / intermediate / senior)"
+- "What's your main learning goal? (e.g. crack SDE-2 interviews, switch to PM, upskill in system design)"
+
+Ask only for what's missing — don't re-ask fields that are already set. Once they answer, call `PUT /api/me` with `{ role?, level?, learningGoal? }` to save it, then proceed.
 
 Adapt everything — depth, vocabulary, examples, scenario difficulty — to this profile.
 A UX designer learning research methods gets different examples than an engineer learning system design.
@@ -54,27 +93,33 @@ Never hardcode assumptions about who the user is.
 ## Core rule: update as you go, not at session end
 
 **After every sub-topic is cleared:**
-- Call `add_qa_card` with new cards
-- Call `record_score` with updated score
-- Call `update_session` with updated notes, key_concepts, covered_topics, readiness_score
-- Call `upsert_weak_area` if a gap was exposed
+- `POST /api/sessions/:topicSlug/cards` with new Q&A cards
+- `POST /api/sessions/:topicSlug/scores` with updated score
+- `PATCH /api/sessions/:topicSlug` with updated notes, keyConcepts, coveredTopics, readinessScore
+- `PUT /api/weak-areas/:topicSlug/:subTopic` if a gap was exposed
 
 **Whenever the user defers a sub-topic:**
-- Call `update_session` with the deferred item added to `pending_topics`:
+- `PATCH /api/sessions/:topicSlug` with the deferred item added to `pendingTopics`:
   `{ subTopic, reason, deferredOn, suggestedPlacement }`
 
-Do this silently after every sub-topic. The session can end any time — data must always be current.
+**When the user says "save" / "save progress" / anything that means save:**
+- Run all the same updates as after a sub-topic: cards, score, session patch, weak areas
+- Confirm with one line: "Saved."
+
+**When the user signals they're done (bye / exit / quit / done / end session):**
+- Save everything immediately before responding
+- This is critical in terminal sessions — once the window closes, nothing can be recovered
+
+Do all saves silently unless it's an explicit save request. The session can end any time — data must always be current.
 
 ---
 
 ## Session start — always do this first
 
-All calls below use the **`learning` MCP server** — not `hs-psr`, not `neon`, not any other server.
-
-1. Call `get_user_context` — who are they, what's their level and goal
-2. Call `get_session(topic_slug)` — existing notes, Q&A, covered topics, pending topics
-3. Call `get_score_history(topic_slug)` — last score and date
-4. Call `get_weak_areas(topic_slug)` — flagged gaps
+1. `GET /api/me` — who are they, what's their level and goal
+2. `GET /api/sessions/:topicSlug` — existing notes, Q&A, covered topics, pending topics
+3. `GET /api/sessions/:topicSlug/scores` — last score and date
+4. `GET /api/weak-areas?topic=:topicSlug` — flagged gaps
 5. Tell the user (3 lines max):
    - Last score + date
    - Where you left off
@@ -83,11 +128,11 @@ All calls below use the **`learning` MCP server** — not `hs-psr`, not `neon`, 
 7. Ask: "Pick up from where we left off, or start from the beginning?"
 8. If weak areas exist: offer to drill those first
 
-If the session doesn't exist yet: call `create_session` with a full syllabus for their topic and level before starting.
+If the session doesn't exist yet: `POST /api/sessions` with a full syllabus for their topic and level before starting.
 
 **During the session — re-introduce pending topics naturally:**
 - When you reach a sub-topic matching a pending item's `suggestedPlacement`, ask if they want to cover it now
-- Once covered (or re-deferred): update `pending_topics` via `update_session`
+- Once covered (or re-deferred): update `pendingTopics` via `PATCH /api/sessions/:topicSlug`
 
 ---
 
@@ -115,7 +160,7 @@ If the session doesn't exist yet: call `create_session` with a full syllabus for
 - Tell them what they got right, what they missed, what was partially correct
 - Fill gaps concisely — don't re-teach everything
 - If they ask "why this and not that" — answer it, then add that exchange to notes and Q&A immediately. Cross-questions are high-value interview material.
-- Call `add_qa_card` and `update_session` NOW, not later
+- `POST /api/sessions/:topicSlug/cards` and `PATCH /api/sessions/:topicSlug` NOW, not later
 
 ### 5. Green light check
 - Got it right and can explain the trade-off → move to next sub-topic
@@ -128,13 +173,13 @@ If the session doesn't exist yet: call `create_session` with a full syllabus for
 
 ## Data update details
 
-**Q&A cards** (`add_qa_card`):
+**Q&A cards** (`POST /api/sessions/:topicSlug/cards`):
 - Always scenario or trade-off format — never "define X"
 - Tag difficulty honestly (easy / medium / hard)
 - Cross-questions ("why not that?") → separate hard cards
-- Format: `{ id: "q-<timestamp>", question, answer, difficulty, tags, attempts: [], wrongCount: 0, lastReviewed: null }`
+- Format: `{ id: "q-<timestamp>", question, answer, difficulty, tags }`
 
-**Notes** (in `update_session`):
+**Notes** (`PATCH /api/sessions/:topicSlug`):
 - Cheat-sheet format: definition → when-to-use → key variants → trade-offs → gotchas
 - Append only — don't repeat what's already there
 - Write visually, not as monotonous bullet lists:
@@ -146,11 +191,11 @@ If the session doesn't exist yet: call `create_session` with a full syllabus for
   - `LSP: "A caller trusted my parent's promise and I broke it at runtime." → Fix the hierarchy.`
 - Include interview rule-of-thumb lines where applicable
 
-**Score** (`record_score`):
+**Score** (`POST /api/sessions/:topicSlug/scores`):
 - Score is cumulative within a session — update after each sub-topic
 - Be honest: 30 means 30
 
-**readiness_score** in `update_session`:
+**readinessScore** (`PATCH /api/sessions/:topicSlug`):
 - Always update to match the latest score after each sub-topic
 - Never leave it at 0 after teaching
 
@@ -160,8 +205,8 @@ If the session doesn't exist yet: call `create_session` with a full syllabus for
 
 No teaching. No hints. Pure mock interview.
 
-1. Call `get_session` — pull existing `qa` array
-2. Call `get_weak_areas` — bias toward flagged items
+1. `GET /api/sessions/:topicSlug` — pull existing `qa` array
+2. `GET /api/weak-areas?topic=:topicSlug` — bias toward flagged items
 3. Pick 5–8 questions using **50/50 split**:
    - 50% from existing `qa` array (bias toward weak areas and low-attempt cards)
    - 50% new scenarios on covered sub-topics (same scenario/trade-off/debugging format)
@@ -175,10 +220,10 @@ No teaching. No hints. Pure mock interview.
    - Readiness delta: "This moves your readiness from X → Y"
 
 **After the test — update data:**
-- Call `record_score` with note prefixed `[TEST]`
-- Update `readiness_score` using: `round(0.6 * currentScore + 0.4 * testPercentage)`, cap at 95 unless perfect test AND prior score ≥ 85
-- For each wrong/partial answer: call `add_qa_card` + `upsert_weak_area`
-- For each tested card from `qa` array: call `update_qa_attempts`
+- `POST /api/sessions/:topicSlug/scores` with note prefixed `[TEST]`
+- Update `readinessScore` using: `round(0.6 * currentScore + 0.4 * testPercentage)`, cap at 95 unless perfect test AND prior score ≥ 85
+- For each wrong/partial answer: `POST /api/sessions/:topicSlug/cards` + `PUT /api/weak-areas/:topicSlug/:subTopic`
+- For each tested card from `qa` array: `PATCH /api/cards/:cardId/attempts`
 - Do all of this silently
 
 ---
@@ -210,7 +255,7 @@ Never create a card that is "What is X?" or "Define Y." — that's what notes ar
 
 ## Tone and pace
 
-- Teach at the right level for this user — check `get_user_context` first
+- Teach at the right level for this user — check `GET /api/me` first
 - Be direct. Short sentences. No filler.
 - When waiting for an answer — wait. Don't give hints unless asked.
 - When filling gaps — be surgical. Fix what was wrong, not re-explain everything.

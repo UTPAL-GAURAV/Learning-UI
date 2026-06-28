@@ -1,22 +1,19 @@
 # Learning UI
 
-A VS Code + Claude learning workflow. Claude teaches, asks scenario questions, and tracks progress via MCP tools. This UI displays that data — read-only.
+A VS Code + Claude learning workflow. Claude teaches, asks scenario questions, and tracks progress via the backend API. This UI displays that data — read-only.
 
 ## One-time setup
 
-Run the setup script — registers you with the backend (ONE TIME ONLY):
+1. Open the dashboard: https://learning-ui-indol.vercel.app
+2. Log in with Google
+3. Click **Copy token** in the top-right corner of the dashboard
+4. Paste it into a `.env` file at the root of this repo:
 
-```bash
-npx github:UTPAL-GAURAV/Learning-Service
+```
+LEARNING_TOKEN=<paste token here>
 ```
 
-It opens a Google login, asks your name, role, and learning goal. Done in ~2 minutes.
-
-Open the dashboard: https://learning-ui-indol.vercel.app
-
 ## Every session after that
-
-No commands to run. The MCP server starts automatically when Claude Code starts.
 
 1. Open this folder in your Claude Code client of choice (CLI, VS Code extension, or desktop app)
 2. Start a new conversation
@@ -24,12 +21,12 @@ No commands to run. The MCP server starts automatically when Claude Code starts.
 4. Claude teaches, asks scenario questions, and tracks your progress automatically
 5. Refresh the browser to see your dashboard update live
 
-> **You must open this folder** — Claude Code reads `.claude/settings.json` from the project root to connect the MCP server. Running `claude` from a different directory won't have the learning tools available.
+> **You must open this folder** — Claude Code reads `CLAUDE.md` from the project root which tells it how to teach and where to save progress.
 
 ## How it works
 
 Claude reads `CLAUDE.md` at the start of every session. That file tells it:
-- Which MCP tools to use for reading/writing session data
+- Which API endpoints to call for reading/writing session data
 - How to adapt teaching to your role and level
 - How to run test mode (`"test me"` triggers a mock interview)
 - Scoring rules, Q&A card format, notes format
