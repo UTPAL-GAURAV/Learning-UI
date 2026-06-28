@@ -76,11 +76,25 @@ function mapSession(s: Record<string, unknown>): Session {
   }
 }
 
+function mapWeakArea(w: Record<string, unknown>): WeakArea {
+  return {
+    id: w.id as string,
+    topicSlug: w.topic_slug as string,
+    subTopic: w.sub_topic as string,
+    description: (w.description as string) ?? '',
+    lastUpdated: w.last_updated as string,
+    questionId: w.question_id as string | undefined,
+    question: w.question as string | undefined,
+    wrongCount: (w.wrong_count as number) ?? 0,
+    flaggedForReview: (w.flagged_for_review as boolean) ?? false,
+  }
+}
+
 export const api = {
   me: () => apiFetch<UserProfile>('/api/me'),
   sessions: () => apiFetch<Record<string, unknown>[]>('/api/sessions').then(r => r.map(mapSessionIndex)),
   session: (slug: string) => apiFetch<Record<string, unknown>>(`/api/sessions/${slug}`).then(mapSession),
   scores: (slug: string) => apiFetch<ScoreEntry[]>(`/api/sessions/${slug}/scores`),
-  weakAreas: () => apiFetch<WeakArea[]>('/api/weak-areas'),
+  weakAreas: (topic?: string) => apiFetch<Record<string, unknown>[]>(`/api/weak-areas${topic ? `?topic=${topic}` : ''}`).then(r => r.map(mapWeakArea)),
   googleAuthUrl: () => `${API_URL}/auth/google`,
 }

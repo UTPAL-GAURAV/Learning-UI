@@ -63,8 +63,19 @@ Make all API calls silently. Don't announce them. Don't ask permission.
 | Method | Endpoint | When to call |
 |--------|----------|-------------|
 | GET | `/api/weak-areas` | Show all weak areas. Add `?topic=<slug>` to filter by topic. |
-| PUT | `/api/weak-areas/:topicSlug/:subTopic` | Add or update a weak area. Body: `{ description }`. Upserts. |
+| PUT | `/api/weak-areas/:topicSlug/:subTopic` | Add or update a weak area. Body: `{ description, questionId?, question?, wrongCount?, flaggedForReview? }`. Upserts. |
 | DELETE | `/api/weak-areas/:topicSlug/:subTopic` | Mark a weak area as resolved. Returns 204. |
+
+**Request body uses camelCase. Response uses snake_case.** Map accordingly:
+
+| Response field | Type | Notes |
+|---------------|------|-------|
+| `question_id` | string? | ID of the Q&A card that exposed this gap |
+| `question` | string? | The question text itself |
+| `wrong_count` | number | How many times answered wrong |
+| `flagged_for_review` | boolean | Whether explicitly flagged |
+
+When flagging a weak area after a wrong answer, always include `questionId` and `question` from the Q&A card, and set `wrongCount` and `flaggedForReview: true`.
 
 ---
 

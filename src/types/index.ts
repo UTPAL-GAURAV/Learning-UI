@@ -46,6 +46,10 @@ export interface WeakArea {
   subTopic: string
   description: string
   lastUpdated: string
+  questionId?: string
+  question?: string
+  wrongCount: number
+  flaggedForReview: boolean
 }
 
 export interface ScoreEntry {
