@@ -1,4 +1,4 @@
-import type { UserProfile, Session, SessionIndexEntry, WeakArea, ScoreEntry, QAItem } from '../types'
+import type { UserProfile, Session, SessionIndexEntry, WeakArea, QAItem } from '../types'
 
 const API_URL = import.meta.env.VITE_API_URL ?? ''
 
@@ -43,6 +43,27 @@ async function apiFetch<T>(path: string): Promise<T> {
   throw new Error(`Backend unavailable after retries: ${path}`)
 }
 
+async function apiPost<T>(path: string, body: unknown): Promise<T> {
+  const token = getToken()
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  }
+  const res = await fetch(`${API_URL}${path}`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+  })
+  if (res.status === 401) {
+    localStorage.removeItem('LEARNING_TOKEN')
+    window.location.reload()
+    throw new Error('Unauthorized')
+  }
+  if (!res.ok) throw new Error(`API error ${res.status}: ${path}`)
+  return res.json()
+}
+
+
 async function apiPatch<T>(path: string, body: unknown): Promise<T> {
   const token = getToken()
   const headers: Record<string, string> = {
@@ -78,7 +99,7 @@ function mapSessionIndex(s: Record<string, unknown>): SessionIndexEntry {
     topic: s.topic_name as string,
     updatedAt: s.updated_at as string,
     readinessScore: (s.readiness_score as number) ?? 0,
-    sessionCount: (s.qa_count as number) ?? 0,
+    sessionCount: parseInt(String(s.qa_count ?? '0'), 10),
     syllabusProgress: total > 0 ? covered / total : undefined,
     totalTopics: total > 0 ? total : undefined,
     conceptCount: keyConcepts.length > 0 ? keyConcepts.length : undefined,
@@ -96,7 +117,7 @@ function mapSession(s: Record<string, unknown>): Session {
     keyConcepts: (s.key_concepts as string[]) ?? [],
     qa: ((s.qa_cards ?? s.qa ?? s.cards) as Session['qa']) ?? [],
     readinessScore: (s.readiness_score as number) ?? 0,
-    sessionCount: (s.qa_count as number) ?? 0,
+    sessionCount: parseInt(String(s.qa_count ?? '0'), 10),
     syllabusTopics: s.syllabus_topics as string[] | undefined,
     coveredTopics: s.covered_topics as string[] | undefined,
     pendingTopics: s.pending_topics as Session['pendingTopics'] | undefined,
@@ -132,11 +153,17 @@ function mapCard(c: Record<string, unknown>): QAItem {
 
 export const api = {
   me: () => apiFetch<UserProfile>('/api/me'),
-  sessions: () => apiFetch<Record<string, unknown>[]>('/api/sessions').then(r => r.map(mapSessionIndex)),
+  sessions: () => apiFetch<Record<string, unknown>[]>('/api/sessions').then(r => Array.from(r).map(mapSessionIndex)),
   session: (slug: string) => apiFetch<Record<string, unknown>>(`/api/sessions/${slug}`).then(mapSession),
   patchSession: (slug: string, patch: Record<string, unknown>) => apiPatch<Record<string, unknown>>(`/api/sessions/${slug}`, patch),
-  cards: (slug: string) => apiFetch<Record<string, unknown>[]>(`/api/sessions/${slug}/cards`).then(r => r.map(mapCard)),
-  scores: (slug: string) => apiFetch<ScoreEntry[]>(`/api/sessions/${slug}/scores`),
-  weakAreas: (topic?: string) => apiFetch<Record<string, unknown>[]>(`/api/weak-areas${topic ? `?topic=${topic}` : ''}`).then(r => r.map(mapWeakArea)),
+  cards: (slug: string) => apiFetch<Record<string, unknown>[]>(`/api/sessions/${slug}/cards`).then(r => Array.from(r).map(mapCard)),
+  addCard: (slug: string, card: Omit<QAItem, 'attempts' | 'wrongCount' | 'lastReviewed'> & { id: string }) =>
+    apiPost<Record<string, unknown>>(`/api/sessions/${slug}/cards`, card).then(mapCard),
+  updateCard: (_id: string, _data: Partial<QAItem>): Promise<QAItem> =>
+    Promise.reject(new Error('Edit cards not yet supported by the backend.')),
+  deleteCard: (_id: string): Promise<void> =>
+    Promise.reject(new Error('Delete cards not yet supported by the backend.')),
+  scores: (slug: string) => apiFetch<import('../types').ScoreEntry[]>(`/api/sessions/${slug}/scores`),
+  weakAreas: (topic?: string) => apiFetch<Record<string, unknown>[]>(`/api/weak-areas${topic ? `?topic=${topic}` : ''}`).then(r => Array.from(r).map(mapWeakArea)),
   googleAuthUrl: () => `${API_URL}/auth/google`,
 }

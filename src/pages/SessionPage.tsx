@@ -56,7 +56,7 @@ export default function SessionPage() {
             onSave={async (notes) => { await api.patchSession(topicSlug!, { notes }) }}
           />
           {session.keyConcepts.length > 0 && <KeyConceptsList concepts={session.keyConcepts} />}
-          <QAList items={session.qa} />
+          <QAList items={session.qa} topicSlug={topicSlug!} />
         </div>
 
         <aside className="w-72 shrink-0 space-y-4">
