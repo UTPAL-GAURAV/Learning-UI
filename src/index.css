@@ -4,3 +4,41 @@
 @theme {
   --font-sans: ui-sans-serif, system-ui, sans-serif;
 }
+
+/* Notes markdown rendering */
+.notes-content { color: #cbd5e1; font-size: 0.875rem; line-height: 1.7; }
+.notes-content h1, .notes-content h2, .notes-content h3 {
+  font-weight: 700; margin: 1.25rem 0 0.5rem;
+  padding-left: 0.75rem;
+  border-left: 3px solid currentColor;
+}
+.notes-content h1 { font-size: 1.1rem; }
+.notes-content h2 { font-size: 1rem; }
+.notes-content h3 { font-size: 0.9rem; }
+.notes-heading.text-sky-400    { color: #38bdf8; }
+.notes-heading.text-amber-400  { color: #fbbf24; }
+.notes-heading.text-emerald-400{ color: #34d399; }
+.notes-heading.text-violet-400 { color: #a78bfa; }
+.notes-heading.text-rose-400   { color: #fb7185; }
+.notes-heading.text-teal-400   { color: #2dd4bf; }
+.notes-content p  { margin: 0.5rem 0; }
+.notes-content ul { list-style: disc; padding-left: 1.25rem; margin: 0.5rem 0; }
+.notes-content ol { list-style: decimal; padding-left: 1.25rem; margin: 0.5rem 0; }
+.notes-content li { margin: 0.2rem 0; }
+.notes-content strong { color: #f1f5f9; font-weight: 600; }
+.notes-content code {
+  background: #1e293b; color: #7dd3fc;
+  padding: 0.1em 0.4em; border-radius: 4px;
+  font-family: ui-monospace, monospace; font-size: 0.82em;
+}
+.notes-content pre {
+  background: #1e293b; padding: 0.75rem 1rem;
+  border-radius: 8px; overflow-x: auto; margin: 0.75rem 0;
+}
+.notes-content pre code { background: none; padding: 0; color: #e2e8f0; }
+.notes-content table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; font-size: 0.82rem; }
+.notes-content th { text-align: left; color: #94a3b8; font-weight: 600; padding: 0.4rem 0.75rem; border-bottom: 1px solid #334155; }
+.notes-content td { padding: 0.4rem 0.75rem; border-bottom: 1px solid #1e293b; color: #cbd5e1; }
+.notes-content tr:last-child td { border-bottom: none; }
+.notes-content hr { border: none; border-top: 1px solid #1e293b; margin: 1rem 0; }
+.notes-content blockquote { border-left: 3px solid #475569; padding-left: 1rem; color: #94a3b8; margin: 0.5rem 0; }

@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Sun, Moon, BookOpen } from 'lucide-react'
+import { ArrowLeft, BookOpen } from 'lucide-react'
 import { useStore } from '../store'
-import { toggleTheme, getTheme } from '../lib/theme'
+import { api } from '../lib/api'
 import { formatDate } from '../lib/utils'
 import NotesViewer from '../components/session/NotesViewer'
 import KeyConceptsList from '../components/session/KeyConceptsList'
@@ -15,7 +15,6 @@ export default function SessionPage() {
   const { topicSlug } = useParams<{ topicSlug: string }>()
   const navigate = useNavigate()
   const { loadSession, fullSessions, scoreHistory } = useStore()
-  const [theme, setTheme] = useState(getTheme())
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -26,10 +25,6 @@ export default function SessionPage() {
 
   const session = topicSlug ? fullSessions[topicSlug] : undefined
   const scores = topicSlug ? (scoreHistory[topicSlug] ?? []) : []
-
-  function handleToggleTheme() {
-    setTheme(toggleTheme())
-  }
 
   if (loading || !session) {
     return (
@@ -52,18 +47,14 @@ export default function SessionPage() {
         <BookOpen size={18} className="text-violet-500" />
         <span className="font-semibold text-white flex-1 truncate">{session.topic}</span>
         <span className="text-xs text-slate-400">Last updated {formatDate(session.updatedAt)}</span>
-        <button
-          onClick={handleToggleTheme}
-          className="p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
-          aria-label="Toggle dark mode"
-        >
-          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-        </button>
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-6 flex gap-6">
         <div className="flex-1 min-w-0 space-y-6">
-          <NotesViewer notes={session.notes} />
+          <NotesViewer
+            notes={session.notes}
+            onSave={async (notes) => { await api.patchSession(topicSlug!, { notes }) }}
+          />
           {session.keyConcepts.length > 0 && <KeyConceptsList concepts={session.keyConcepts} />}
           <QAList items={session.qa} />
         </div>

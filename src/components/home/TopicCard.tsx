@@ -39,8 +39,8 @@ export default function TopicCard({ session, scores = [] }: Props) {
   const scoreColor = getScoreTextColor(score)
   const barColor = getScoreBarColor(score)
   const progress = session.syllabusProgress ?? 0
-  const covered = Math.round(progress * (session.totalTopics ?? 0))
   const total = session.totalTopics ?? 0
+  const covered = total > 0 ? Math.round(progress * total) : 0
 
   return (
     <Link

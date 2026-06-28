@@ -1,15 +1,57 @@
 import { useState } from 'react'
-import { BookOpen, Sun, Moon, Copy, Check, TrendingUp, Target } from 'lucide-react'
+import { BookOpen, Copy, Check, TrendingUp, Target, HelpCircle, X } from 'lucide-react'
 import { useStore } from '../store'
-import { toggleTheme, getTheme } from '../lib/theme'
 import { getScoreTextColor } from '../lib/scoring'
 import TopicGrid from '../components/home/TopicGrid'
-import WeakAreasSummary from '../components/home/WeakAreasSummary'
+
+function SetupModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={onClose}>
+      <div
+        className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-lg w-full mx-4 shadow-2xl"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="font-bold text-white text-base">Setup & How to Use</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors"><X size={18} /></button>
+        </div>
+        <div className="space-y-4 text-sm text-slate-300 leading-relaxed">
+          <div>
+            <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-2">1. Clone the repo</p>
+            <code className="block bg-slate-800 text-sky-400 px-3 py-2 rounded-lg text-xs font-mono">
+              git clone https://github.com/UTPAL-GAURAV/Learning-UI.git
+            </code>
+          </div>
+          <div>
+            <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-2">2. Get your token</p>
+            <p>Log in with Google above, then click <span className="text-white font-medium">Copy token</span> in the header.</p>
+          </div>
+          <div>
+            <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-2">3. Add token to .env</p>
+            <code className="block bg-slate-800 text-sky-400 px-3 py-2 rounded-lg text-xs font-mono">
+              LEARNING_TOKEN=&lt;paste token here&gt;
+            </code>
+          </div>
+          <div>
+            <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-2">4. Start a session</p>
+            <p>Open the cloned folder in Claude Code (CLI, VS Code extension, or desktop app) and say:</p>
+            <code className="block bg-slate-800 text-emerald-400 px-3 py-2 rounded-lg text-xs font-mono mt-1">
+              Start a learning session on [topic]
+            </code>
+          </div>
+          <p className="text-slate-500 text-xs pt-1">
+            Claude reads CLAUDE.md automatically — no extra setup needed. Refresh this dashboard to see progress update live.
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function HomePage() {
-  const { me, sessions, weakAreas } = useStore()
-  const [theme, setTheme] = useState(getTheme())
+  const { me, sessions } = useStore()
   const [copied, setCopied] = useState(false)
+  const [showSetup, setShowSetup] = useState(false)
 
   function handleCopyToken() {
     const token = localStorage.getItem('LEARNING_TOKEN')
@@ -20,10 +62,6 @@ export default function HomePage() {
     })
   }
 
-  function handleToggleTheme() {
-    setTheme(toggleTheme())
-  }
-
   const totalQA = sessions.reduce((acc, s) => acc + (s.sessionCount ?? 0), 0)
   const avgScore = sessions.length
     ? Math.round(sessions.reduce((a, s) => a + (s.readinessScore ?? 0), 0) / sessions.length)
@@ -32,11 +70,20 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-slate-950">
+      {showSetup && <SetupModal onClose={() => setShowSetup(false)} />}
+
       <header className="sticky top-0 z-10 h-14 bg-slate-900 border-b border-slate-800 flex items-center px-4 gap-3">
         <div className="flex items-center gap-2 text-violet-500 flex-1">
           <BookOpen size={20} />
           <span className="font-semibold text-white">Learning</span>
         </div>
+        <button
+          onClick={() => setShowSetup(true)}
+          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+        >
+          <HelpCircle size={14} />
+          How to use
+        </button>
         <button
           onClick={handleCopyToken}
           className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
@@ -44,13 +91,6 @@ export default function HomePage() {
         >
           {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
           {copied ? 'Copied!' : 'Copy token'}
-        </button>
-        <button
-          onClick={handleToggleTheme}
-          className="p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
-          aria-label="Toggle dark mode"
-        >
-          {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
         </button>
         {me && (
           <span className="text-xs text-slate-400 bg-slate-800 px-3 py-1 rounded-full font-medium">
@@ -63,8 +103,8 @@ export default function HomePage() {
         {sessions.length > 0 && (
           <div className="grid grid-cols-3 gap-4">
             <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
-              <div className="flex items-center gap-1.5 text-violet-500 mb-2">
-                <BookOpen size={14} />
+              <div className="flex items-center gap-1.5 mb-2">
+                <BookOpen size={14} className="text-violet-500" />
                 <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Topics</span>
               </div>
               <div className="text-4xl font-bold text-white">{sessions.length}</div>
@@ -87,11 +127,8 @@ export default function HomePage() {
           </div>
         )}
 
-        {weakAreas.length > 0 && <WeakAreasSummary weakAreas={weakAreas} />}
-
         <TopicGrid sessions={sessions} />
       </main>
     </div>
   )
 }
-

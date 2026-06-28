@@ -43,6 +43,26 @@ async function apiFetch<T>(path: string): Promise<T> {
   throw new Error(`Backend unavailable after retries: ${path}`)
 }
 
+async function apiPatch<T>(path: string, body: unknown): Promise<T> {
+  const token = getToken()
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  }
+  const res = await fetch(`${API_URL}${path}`, {
+    method: 'PATCH',
+    headers,
+    body: JSON.stringify(body),
+  })
+  if (res.status === 401) {
+    localStorage.removeItem('LEARNING_TOKEN')
+    window.location.reload()
+    throw new Error('Unauthorized')
+  }
+  if (!res.ok) throw new Error(`API error ${res.status}: ${path}`)
+  return res.json()
+}
+
 function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
@@ -53,8 +73,10 @@ function mapSessionIndex(s: Record<string, unknown>): SessionIndexEntry {
     topic: s.topic_name as string,
     updatedAt: s.updated_at as string,
     readinessScore: (s.readiness_score as number) ?? 0,
-    sessionCount: (s.session_count as number) ?? 0,
+    sessionCount: (s.qa_count as number) ?? (s.session_count as number) ?? 0,
     syllabusProgress: s.syllabus_progress as number | undefined,
+    totalTopics: s.total_topics as number | undefined,
+    conceptCount: s.concept_count as number | undefined,
   }
 }
 
@@ -67,7 +89,7 @@ function mapSession(s: Record<string, unknown>): Session {
     updatedAt: s.updated_at as string,
     notes: (s.notes as string) ?? '',
     keyConcepts: (s.key_concepts as string[]) ?? [],
-    qa: (s.qa as Session['qa']) ?? [],
+    qa: ((s.qa_cards ?? s.qa) as Session['qa']) ?? [],
     readinessScore: (s.readiness_score as number) ?? 0,
     sessionCount: (s.session_count as number) ?? 0,
     syllabusTopics: s.syllabus_topics as string[] | undefined,
@@ -94,6 +116,7 @@ export const api = {
   me: () => apiFetch<UserProfile>('/api/me'),
   sessions: () => apiFetch<Record<string, unknown>[]>('/api/sessions').then(r => r.map(mapSessionIndex)),
   session: (slug: string) => apiFetch<Record<string, unknown>>(`/api/sessions/${slug}`).then(mapSession),
+  patchSession: (slug: string, patch: Record<string, unknown>) => apiPatch<Record<string, unknown>>(`/api/sessions/${slug}`, patch),
   scores: (slug: string) => apiFetch<ScoreEntry[]>(`/api/sessions/${slug}/scores`),
   weakAreas: (topic?: string) => apiFetch<Record<string, unknown>[]>(`/api/weak-areas${topic ? `?topic=${topic}` : ''}`).then(r => r.map(mapWeakArea)),
   googleAuthUrl: () => `${API_URL}/auth/google`,
