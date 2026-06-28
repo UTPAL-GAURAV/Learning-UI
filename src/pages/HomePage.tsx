@@ -28,6 +28,7 @@ function SetupModal({ onClose }: { onClose: () => void }) {
           </div>
           <div>
             <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-2">3. Add token to .env</p>
+            <p>Open the cloned repo in your local machine and paste the token.</p>
             <code className="block bg-slate-800 text-sky-400 px-3 py-2 rounded-lg text-xs font-mono">
               LEARNING_TOKEN=&lt;paste token here&gt;
             </code>

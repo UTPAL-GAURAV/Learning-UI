@@ -1,4 +1,4 @@
-import type { UserProfile, Session, SessionIndexEntry, WeakArea, ScoreEntry } from '../types'
+import type { UserProfile, Session, SessionIndexEntry, WeakArea, ScoreEntry, QAItem } from '../types'
 
 const API_URL = import.meta.env.VITE_API_URL ?? ''
 
@@ -68,15 +68,20 @@ function sleep(ms: number) {
 }
 
 function mapSessionIndex(s: Record<string, unknown>): SessionIndexEntry {
+  const syllabusTopics = (s.syllabus_topics as string[]) ?? []
+  const coveredTopics = (s.covered_topics as string[]) ?? []
+  const keyConcepts = (s.key_concepts as string[]) ?? []
+  const total = syllabusTopics.length
+  const covered = coveredTopics.length
   return {
     topicSlug: s.topic_slug as string,
     topic: s.topic_name as string,
     updatedAt: s.updated_at as string,
     readinessScore: (s.readiness_score as number) ?? 0,
-    sessionCount: (s.qa_count as number) ?? (s.session_count as number) ?? 0,
-    syllabusProgress: s.syllabus_progress as number | undefined,
-    totalTopics: s.total_topics as number | undefined,
-    conceptCount: s.concept_count as number | undefined,
+    sessionCount: (s.qa_count as number) ?? 0,
+    syllabusProgress: total > 0 ? covered / total : undefined,
+    totalTopics: total > 0 ? total : undefined,
+    conceptCount: keyConcepts.length > 0 ? keyConcepts.length : undefined,
   }
 }
 
@@ -89,9 +94,9 @@ function mapSession(s: Record<string, unknown>): Session {
     updatedAt: s.updated_at as string,
     notes: (s.notes as string) ?? '',
     keyConcepts: (s.key_concepts as string[]) ?? [],
-    qa: ((s.qa_cards ?? s.qa) as Session['qa']) ?? [],
+    qa: ((s.qa_cards ?? s.qa ?? s.cards) as Session['qa']) ?? [],
     readinessScore: (s.readiness_score as number) ?? 0,
-    sessionCount: (s.session_count as number) ?? 0,
+    sessionCount: (s.qa_count as number) ?? 0,
     syllabusTopics: s.syllabus_topics as string[] | undefined,
     coveredTopics: s.covered_topics as string[] | undefined,
     pendingTopics: s.pending_topics as Session['pendingTopics'] | undefined,
@@ -112,11 +117,25 @@ function mapWeakArea(w: Record<string, unknown>): WeakArea {
   }
 }
 
+function mapCard(c: Record<string, unknown>): QAItem {
+  return {
+    id: c.id as string,
+    question: c.question as string,
+    answer: c.answer as string,
+    difficulty: c.difficulty as QAItem['difficulty'],
+    tags: (c.tags as string[]) ?? [],
+    attempts: (c.attempts as QAItem['attempts']) ?? [],
+    wrongCount: (c.wrong_count as number) ?? 0,
+    lastReviewed: (c.last_reviewed as string | null) ?? null,
+  }
+}
+
 export const api = {
   me: () => apiFetch<UserProfile>('/api/me'),
   sessions: () => apiFetch<Record<string, unknown>[]>('/api/sessions').then(r => r.map(mapSessionIndex)),
   session: (slug: string) => apiFetch<Record<string, unknown>>(`/api/sessions/${slug}`).then(mapSession),
   patchSession: (slug: string, patch: Record<string, unknown>) => apiPatch<Record<string, unknown>>(`/api/sessions/${slug}`, patch),
+  cards: (slug: string) => apiFetch<Record<string, unknown>[]>(`/api/sessions/${slug}/cards`).then(r => r.map(mapCard)),
   scores: (slug: string) => apiFetch<ScoreEntry[]>(`/api/sessions/${slug}/scores`),
   weakAreas: (topic?: string) => apiFetch<Record<string, unknown>[]>(`/api/weak-areas${topic ? `?topic=${topic}` : ''}`).then(r => r.map(mapWeakArea)),
   googleAuthUrl: () => `${API_URL}/auth/google`,

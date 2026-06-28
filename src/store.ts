@@ -35,12 +35,14 @@ export const useStore = create<AppState>((set, get) => ({
     const existingScores = get().scoreHistory[topicSlug]
     if (existing && existingScores) return
 
-    const [session, scores] = await Promise.all([
+    const [session, scores, cards] = await Promise.all([
       api.session(topicSlug),
       api.scores(topicSlug),
+      api.cards(topicSlug),
     ])
+    const sessionWithCards = { ...session, qa: cards }
     set(state => ({
-      fullSessions: { ...state.fullSessions, [topicSlug]: session },
+      fullSessions: { ...state.fullSessions, [topicSlug]: sessionWithCards },
       scoreHistory: { ...state.scoreHistory, [topicSlug]: scores },
     }))
   },
