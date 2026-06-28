@@ -1,7 +1,17 @@
-import { BookOpen } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { BookOpen, AlertTriangle } from 'lucide-react'
 import { api } from '../lib/api'
 
 export default function LoginPage() {
+  const [tokenExpired, setTokenExpired] = useState(false)
+
+  useEffect(() => {
+    if (localStorage.getItem('token_expired') === 'true') {
+      setTokenExpired(true)
+      localStorage.removeItem('token_expired')
+    }
+  }, [])
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-10 flex flex-col items-center gap-6 w-full max-w-sm shadow-sm">
@@ -9,9 +19,31 @@ export default function LoginPage() {
           <BookOpen size={28} />
           <span className="text-xl font-semibold text-slate-800 dark:text-slate-100">Learning</span>
         </div>
-        <p className="text-sm text-slate-500 dark:text-slate-400 text-center">
-          Sign in to access your learning sessions.
-        </p>
+
+        {tokenExpired ? (
+          <div className="w-full rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 space-y-3">
+            <div className="flex items-center gap-2 text-amber-400">
+              <AlertTriangle size={15} />
+              <span className="text-sm font-semibold">Session token expired</span>
+            </div>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Your auth token has expired. Sign in again with Google, then update your token:
+            </p>
+            <ol className="text-xs text-slate-400 space-y-1.5 list-none">
+              <li><span className="text-slate-500 font-medium">1.</span> Click <span className="text-white font-medium">Login with Google</span> below</li>
+              <li><span className="text-slate-500 font-medium">2.</span> Click <span className="text-white font-medium">Copy token</span> in the header</li>
+              <li>
+                <span className="text-slate-500 font-medium">3.</span> Update <code className="text-sky-400 bg-slate-800 px-1 rounded">.env</code> in your repo:
+                <code className="block bg-slate-800 text-sky-400 px-2 py-1.5 rounded mt-1 font-mono">LEARNING_TOKEN=&lt;new token&gt;</code>
+              </li>
+            </ol>
+          </div>
+        ) : (
+          <p className="text-sm text-slate-500 dark:text-slate-400 text-center">
+            Sign in to access your learning sessions.
+          </p>
+        )}
+
         <a
           href={api.googleAuthUrl()}
           className="w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-semibold text-sm transition-colors"

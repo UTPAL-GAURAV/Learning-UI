@@ -11,6 +11,39 @@ This file is read automatically at the start of every Claude session in this rep
 - **No local paths.** Never reference file paths on the current machine (e.g. `/Users/...`). All tooling must work for any user on any machine.
 - **The backend is on Render free tier** — it cold-starts after inactivity. If a request fails with a timeout or 503, retry once before giving up.
 - **Every request requires `Authorization: Bearer <jwt>`** (except `/auth/google` and `/auth/callback`). Read the token from the `LEARNING_TOKEN` variable in `.env` at the project root. If it's missing, tell the user to copy their token from the dashboard and add it to `.env` as `LEARNING_TOKEN=<token>`.
+
+---
+
+## API error handling — two distinct cases, never mix them
+
+### Case 1: Token expired (401 response)
+
+If any API call returns a 401, the token in `.env` has expired. Do this immediately:
+
+1. Stop whatever you were doing mid-session.
+2. Tell the user exactly this:
+
+> Your session token has expired. Here's how to get a new one:
+> 1. Open the dashboard at `https://learning-ui-peach.vercel.app` in your browser
+> 2. Log in with Google if prompted
+> 3. Click **Copy token** in the top-right of the header
+> 4. Open `.env` in this repo and update the line:
+>    ```
+>    LEARNING_TOKEN=<paste new token here>
+>    ```
+> Once you've done that, say **"token updated"** and I'll retry everything that failed.
+
+3. Wait. Do not retry until the user confirms they've updated the token.
+4. When the user says "token updated" (or anything meaning they've done it): re-read `.env`, then silently retry **all** the API calls that failed — saves, patches, card posts, whatever was in-flight. Then confirm with one line: "Retried. All good."
+
+### Case 2: Server cold-starting (timeout / 503 / network error)
+
+If a request times out or returns 5xx, the Render server is waking up. This is **not** a token issue — do not mention the token.
+
+- Retry once after ~5 seconds.
+- If it succeeds: continue silently.
+- If it fails again: tell the user "The backend is warming up (Render free tier). Give it ~30 seconds and I'll try again." Then retry once more after 30 seconds before giving up.
+- Never ask the user to do anything for a cold-start — it resolves on its own.
 - **Backend base URL:** `https://learning-service-y9e3.onrender.com`. All API paths are relative to this.
 
 ---

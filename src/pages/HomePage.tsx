@@ -1,8 +1,94 @@
 import { useState } from 'react'
-import { BookOpen, Copy, Check, TrendingUp, Target, HelpCircle, X } from 'lucide-react'
+import { BookOpen, Copy, Check, TrendingUp, Target, HelpCircle, X, Brain, Layers, FileQuestion, RotateCcw, Sparkles } from 'lucide-react'
 import { useStore } from '../store'
 import { getScoreTextColor } from '../lib/scoring'
 import TopicGrid from '../components/home/TopicGrid'
+
+function AboutModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={onClose}>
+      <div
+        className="bg-slate-900 border border-slate-700 rounded-2xl p-6 max-w-2xl w-full mx-4 shadow-2xl max-h-[90vh] overflow-y-auto"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-2">
+            <Sparkles size={15} className="text-violet-400" />
+            <h2 className="font-bold text-white text-base">What is this app?</h2>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors"><X size={18} /></button>
+        </div>
+        <p className="text-xs text-slate-500 mb-4">Your one-stop personalised learning companion</p>
+
+        <p className="text-sm text-slate-300 leading-relaxed mb-5">
+          Most learners bounce between YouTube videos, blog posts, flashcard apps, and random mock tests — spending more time managing their prep than actually learning.
+          <span className="text-white font-medium"> This app is the single place where everything lives:</span> your notes, your Q&amp;A cards, your weak spots, your progress — all tied to <em>you</em> and <em>your</em> goal.
+        </p>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Brain size={14} className="text-violet-400" />
+              <span className="text-xs font-semibold text-white uppercase tracking-wide">Personalised teaching</span>
+            </div>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Claude knows your role, level, and goal. Every explanation, analogy, and example is tailored to you — an SDE-2 candidate gets system-design depth; a QA engineer gets test-design scenarios.
+            </p>
+          </div>
+          <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Layers size={14} className="text-emerald-400" />
+              <span className="text-xs font-semibold text-white uppercase tracking-wide">Structured syllabus</span>
+            </div>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Just say "I want to learn Redis" — Claude designs the full syllabus for your level, walks you through each sub-topic in order, and keeps track of where you are. No more random rabbit holes.
+            </p>
+          </div>
+          <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <FileQuestion size={14} className="text-sky-400" />
+              <span className="text-xs font-semibold text-white uppercase tracking-wide">Application-first Q&amp;A</span>
+            </div>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Every question is scenario-based or a trade-off — the kind that actually comes up in interviews. No "define X" cards. Each card is auto-generated per your topic and difficulty level.
+            </p>
+          </div>
+          <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <RotateCcw size={14} className="text-amber-400" />
+              <span className="text-xs font-semibold text-white uppercase tracking-wide">Memory across sessions</span>
+            </div>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Pick up exactly where you left off — last score, deferred topics, flagged weak areas. No need to maintain notes manually. The app remembers everything between sessions.
+            </p>
+          </div>
+          <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Target size={14} className="text-rose-400" />
+              <span className="text-xs font-semibold text-white uppercase tracking-wide">Weak area tracking</span>
+            </div>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Wrong answers are automatically flagged as weak areas. You can drill them any time, and the test mode biases toward gaps — so you're always working on what matters most.
+            </p>
+          </div>
+          <div className="bg-slate-800/60 border border-slate-700/60 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingUp size={14} className="text-violet-400" />
+              <span className="text-xs font-semibold text-white uppercase tracking-wide">One-stop dashboard</span>
+            </div>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              No YouTube, no Notion, no random mock sites. Every topic you're learning lives here — with readiness scores, score history, notes, and Q&amp;A cards all in one place.
+            </p>
+          </div>
+        </div>
+
+        <p className="text-xs text-slate-500 mt-5 leading-relaxed">
+          <span className="text-slate-400 font-medium">How it works:</span> Open this repo in Claude Code, copy your token from the header, paste it in <code className="text-sky-400 bg-slate-800 px-1 rounded">.env</code> as <code className="text-sky-400 bg-slate-800 px-1 rounded">LEARNING_TOKEN=...</code>, and say <span className="text-emerald-400">"Start a learning session on [topic]"</span>. Claude reads CLAUDE.md automatically — no extra setup.
+        </p>
+      </div>
+    </div>
+  )
+}
 
 function SetupModal({ onClose }: { onClose: () => void }) {
   return (
@@ -53,6 +139,7 @@ export default function HomePage() {
   const { me, sessions } = useStore()
   const [copied, setCopied] = useState(false)
   const [showSetup, setShowSetup] = useState(false)
+  const [showAbout, setShowAbout] = useState(false)
 
   function handleCopyToken() {
     const token = localStorage.getItem('LEARNING_TOKEN')
@@ -72,12 +159,20 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-slate-950">
       {showSetup && <SetupModal onClose={() => setShowSetup(false)} />}
+      {showAbout && <AboutModal onClose={() => setShowAbout(false)} />}
 
       <header className="sticky top-0 z-10 h-14 bg-slate-900 border-b border-slate-800 flex items-center px-4 gap-3">
         <div className="flex items-center gap-2 text-violet-500 flex-1">
           <BookOpen size={20} />
           <span className="font-semibold text-white">Learning</span>
         </div>
+        <button
+          onClick={() => setShowAbout(true)}
+          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+        >
+          <Sparkles size={14} />
+          About
+        </button>
         <button
           onClick={() => setShowSetup(true)}
           className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"

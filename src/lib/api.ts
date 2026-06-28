@@ -18,6 +18,7 @@ async function apiFetch<T>(path: string): Promise<T> {
 
       if (res.status === 401) {
         localStorage.removeItem('LEARNING_TOKEN')
+        localStorage.setItem('token_expired', 'true')
         window.location.reload()
         throw new Error('Unauthorized')
       }
@@ -56,6 +57,7 @@ async function apiPost<T>(path: string, body: unknown): Promise<T> {
   })
   if (res.status === 401) {
     localStorage.removeItem('LEARNING_TOKEN')
+    localStorage.setItem('token_expired', 'true')
     window.location.reload()
     throw new Error('Unauthorized')
   }
@@ -77,6 +79,7 @@ async function apiPatch<T>(path: string, body: unknown): Promise<T> {
   })
   if (res.status === 401) {
     localStorage.removeItem('LEARNING_TOKEN')
+    localStorage.setItem('token_expired', 'true')
     window.location.reload()
     throw new Error('Unauthorized')
   }
@@ -167,7 +170,7 @@ export const api = {
     const token = getToken()
     const headers: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {}
     const res = await fetch(`${API_URL}/api/sessions/${slug}`, { method: 'DELETE', headers })
-    if (res.status === 401) { localStorage.removeItem('LEARNING_TOKEN'); window.location.reload(); throw new Error('Unauthorized') }
+    if (res.status === 401) { localStorage.removeItem('LEARNING_TOKEN'); localStorage.setItem('token_expired', 'true'); window.location.reload(); throw new Error('Unauthorized') }
     if (!res.ok && res.status !== 204) throw new Error(`Failed to delete session: ${res.status}`)
   },
   scores: (slug: string) => apiFetch<import('../types').ScoreEntry[]>(`/api/sessions/${slug}/scores`),
