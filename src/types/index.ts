@@ -62,4 +62,6 @@ export interface SessionIndexEntry {
   readinessScore: number
   sessionCount: number
   syllabusProgress?: number
+  totalTopics?: number
+  conceptCount?: number
 }

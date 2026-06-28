@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Sun, Moon } from 'lucide-react'
+import { ArrowLeft, Sun, Moon, BookOpen } from 'lucide-react'
 import { useStore } from '../store'
 import { toggleTheme, getTheme } from '../lib/theme'
 import { formatDate } from '../lib/utils'
@@ -33,27 +33,28 @@ export default function SessionPage() {
 
   if (loading || !session) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
         <div className="text-slate-400 text-sm animate-pulse">Loading session…</div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <header className="sticky top-0 z-10 h-14 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center px-4 gap-3">
+    <div className="min-h-screen bg-slate-950">
+      <header className="sticky top-0 z-10 h-14 bg-slate-900 border-b border-slate-800 flex items-center px-4 gap-3">
         <button
           onClick={() => navigate('/')}
-          className="p-2 rounded-lg text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          className="p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
           aria-label="Back"
         >
           <ArrowLeft size={16} />
         </button>
-        <span className="font-semibold text-slate-800 dark:text-slate-100 flex-1 truncate">{session.topic}</span>
+        <BookOpen size={18} className="text-violet-500" />
+        <span className="font-semibold text-white flex-1 truncate">{session.topic}</span>
         <span className="text-xs text-slate-400">Last updated {formatDate(session.updatedAt)}</span>
         <button
           onClick={handleToggleTheme}
-          className="p-2 rounded-lg text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          className="p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
           aria-label="Toggle dark mode"
         >
           {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}

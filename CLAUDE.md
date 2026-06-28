@@ -201,9 +201,29 @@ If the session doesn't exist yet: `POST /api/sessions` with a full syllabus for 
 
 ---
 
+## Data integrity — validate before every write
+
+The UI renders directly from the stored JSON. Malformed data will silently break tiles and sections without any error shown to the user.
+
+**Before every API write, verify:**
+- All required fields are present and non-null
+- Arrays are actually arrays (not strings or objects)
+- Numbers are numbers (score, readinessScore — not `"75"`)
+- `coveredTopics` and `pendingTopics` are arrays of objects, not flat strings
+- `keyConcepts` is an array of strings
+- `tags` on a Q&A card is an array (can be empty `[]`, never omitted or a string)
+- No `undefined` values — use `null` or omit the field entirely
+
+**If the user says a section is missing or not showing:**
+- It almost always means the data for that field is malformed or the wrong type
+- Tell the user: "That's likely a data format issue. I can fetch the current value and fix it — just say 'fix it'."
+- On "fix it": `GET /api/sessions/:topicSlug`, find the bad field, correct it, re-send via `PATCH`
+
 ## Test mode (when user says "test me" or "take my test")
 
 No teaching. No hints. Pure mock interview.
+
+### If the topic already has a session:
 
 1. `GET /api/sessions/:topicSlug` — pull existing `qa` array
 2. `GET /api/weak-areas?topic=:topicSlug` — bias toward flagged items
@@ -219,11 +239,27 @@ No teaching. No hints. Pure mock interview.
    - Gaps exposed
    - Readiness delta: "This moves your readiness from X → Y"
 
-**After the test — update data:**
+### If the topic has no session yet ("test me on Java" with no prior Java session):
+
+The user is confident and wants to skip learning. Do this:
+
+1. `POST /api/sessions` to create the session — generate a full syllabus for the topic matched to their role and level from `GET /api/me`. Set `readinessScore: 0`.
+2. Generate 8 fresh questions spanning the full topic — breadth first, cover core sub-topics, use scenario/trade-off/debugging format. No easy definitional questions.
+3. Run the test exactly as above — one question at a time, no hints.
+4. After the test: show summary, then calibrate everything based on performance:
+   - Derive `coveredTopics` from sub-topics the user answered correctly
+   - Derive `pendingTopics` from sub-topics they got wrong or skipped
+   - Set `readinessScore` honestly from test percentage (use the same formula: `round(0.6 * 0 + 0.4 * testPercentage)`)
+   - For each wrong/partial answer: `POST` a Q&A card + `PUT` a weak area
+   - `PATCH /api/sessions/:topicSlug` with all of the above
+   - `POST /api/sessions/:topicSlug/scores` with note `[TEST] cold start`
+5. Tell the user: "Your dashboard tile for [topic] is live. Weak areas are flagged — say 'let's drill those' to go deep on gaps."
+
+**After any test — update data:**
 - `POST /api/sessions/:topicSlug/scores` with note prefixed `[TEST]`
 - Update `readinessScore` using: `round(0.6 * currentScore + 0.4 * testPercentage)`, cap at 95 unless perfect test AND prior score ≥ 85
 - For each wrong/partial answer: `POST /api/sessions/:topicSlug/cards` + `PUT /api/weak-areas/:topicSlug/:subTopic`
-- For each tested card from `qa` array: `PATCH /api/cards/:cardId/attempts`
+- For each tested card from existing `qa` array: `PATCH /api/cards/:cardId/attempts`
 - Do all of this silently
 
 ---

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { BookOpen, Sun, Moon, Copy, Check } from 'lucide-react'
+import { BookOpen, Sun, Moon, Copy, Check, TrendingUp, Target } from 'lucide-react'
 import { useStore } from '../store'
 import { toggleTheme, getTheme } from '../lib/theme'
 import { getScoreTextColor } from '../lib/scoring'
@@ -31,15 +31,15 @@ export default function HomePage() {
   const readyCount = sessions.filter(s => s.readinessScore >= 75).length
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-      <header className="sticky top-0 z-10 h-14 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center px-4 gap-3">
-        <div className="flex items-center gap-2 text-violet-600 flex-1">
+    <div className="min-h-screen bg-slate-950">
+      <header className="sticky top-0 z-10 h-14 bg-slate-900 border-b border-slate-800 flex items-center px-4 gap-3">
+        <div className="flex items-center gap-2 text-violet-500 flex-1">
           <BookOpen size={20} />
-          <span className="font-semibold text-slate-800 dark:text-slate-100">Learning</span>
+          <span className="font-semibold text-white">Learning</span>
         </div>
         <button
           onClick={handleCopyToken}
-          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
           title="Copy auth token for Claude"
         >
           {copied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
@@ -47,13 +47,13 @@ export default function HomePage() {
         </button>
         <button
           onClick={handleToggleTheme}
-          className="p-2 rounded-lg text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+          className="p-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
           aria-label="Toggle dark mode"
         >
           {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
         </button>
         {me && (
-          <span className="text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full font-medium">
+          <span className="text-xs text-slate-400 bg-slate-800 px-3 py-1 rounded-full font-medium">
             {me.name}
           </span>
         )}
@@ -62,18 +62,27 @@ export default function HomePage() {
       <main className="max-w-6xl mx-auto px-4 py-6 space-y-6">
         {sessions.length > 0 && (
           <div className="grid grid-cols-3 gap-4">
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5">
-              <div className="text-xs text-slate-400 font-medium mb-1">Topics</div>
-              <div className="text-2xl font-semibold text-slate-800 dark:text-slate-100">{sessions.length}</div>
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+              <div className="flex items-center gap-1.5 text-violet-500 mb-2">
+                <BookOpen size={14} />
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Topics</span>
+              </div>
+              <div className="text-4xl font-bold text-white">{sessions.length}</div>
             </div>
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5">
-              <div className="text-xs text-slate-400 font-medium mb-1">Total Q&A</div>
-              <div className="text-2xl font-semibold text-slate-800 dark:text-slate-100">{totalQA}</div>
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+              <div className="flex items-center gap-1.5 mb-2">
+                <TrendingUp size={14} className="text-violet-500" />
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Q&amp;A Cards</span>
+              </div>
+              <div className="text-4xl font-bold text-white">{totalQA}</div>
             </div>
-            <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5">
-              <div className="text-xs text-slate-400 font-medium mb-1">Avg Readiness</div>
-              <div className={`text-2xl font-semibold ${getScoreTextColor(avgScore)}`}>{avgScore}%</div>
-              <div className="text-xs text-slate-400 mt-0.5">{readyCount} topic{readyCount !== 1 ? 's' : ''} ≥ 75</div>
+            <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+              <div className="flex items-center gap-1.5 mb-2">
+                <Target size={14} className="text-emerald-500" />
+                <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">Avg Readiness</span>
+              </div>
+              <div className={`text-4xl font-bold ${getScoreTextColor(avgScore)}`}>{avgScore}</div>
+              <div className="text-xs text-slate-500 mt-1">{readyCount} topic{readyCount !== 1 ? 's' : ''} ≥ 75</div>
             </div>
           </div>
         )}
@@ -85,3 +94,4 @@ export default function HomePage() {
     </div>
   )
 }
+
